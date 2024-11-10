@@ -7,18 +7,18 @@
 
 #define SSD1306_CONTROL_CMD                     0x00
 #define SSD1306_CONTROL_DATA                    0x40
-#define SSD1306_CMD_SET_VERTICAL_SCROLL_AREA    0xA3 // Follow by 2-byte setup
-#define SSD1306_CMD_SET_MUX_RATIO               0xA8 // Follow by 1-byte setup
-#define SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE  0x20 // Follow by 1-byte setup
-#define SSD1306_CMD_SET_COM_CONFIGURATION       0xDA // Follow by 1-byte setup
-#define SSD1306_CMD_SET_PAGE_ADDRESS            0x22 // Follow by 2-byte setup
-#define SSD1306_CMD_SET_DIV_RATIO_AND_FREQ      0xD5 // Follow by 1-byte setup
-#define SSD1306_CMD_SET_CHARGE_PUMP             0x8D // Follow by 1-byte setup
-#define SSD1306_CMD_SET_CONTRAST_CONTROL        0x81 // Follow by 1-byte setup
-#define SSD1306_CMD_SET_SCROLL_JUST_RIGHT       0x26 // Follow by 6-byte setup
-#define SSD1306_CMD_SET_SCROLL_JUST_LEFT        0x27 // Follow by 6-byte setup
-#define SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT   0x29 // Follow by 5-byte setup
-#define SSD1306_CMD_SET_SCROLL_DIAGONAL_LEFT    0x2A // Follow by 5-byte setup
+#define SSD1306_CMD_SET_VERTICAL_SCROLL_AREA    0xA3  // Follow by 2-byte setup
+#define SSD1306_CMD_SET_MUX_RATIO               0xA8  // Follow by 1-byte setup
+#define SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE  0x20  // Follow by 1-byte setup
+#define SSD1306_CMD_SET_COM_CONFIGURATION       0xDA  // Follow by 1-byte setup
+#define SSD1306_CMD_SET_PAGE_ADDRESS            0x22  // Follow by 2-byte setup
+#define SSD1306_CMD_SET_DIV_RATIO_AND_FREQ      0xD5  // Follow by 1-byte setup
+#define SSD1306_CMD_SET_CHARGE_PUMP             0x8D  // Follow by 1-byte setup
+#define SSD1306_CMD_SET_CONTRAST_CONTROL        0x81  // Follow by 1-byte setup
+#define SSD1306_CMD_SET_SCROLL_JUST_RIGHT       0x26  // Follow by 6-byte setup
+#define SSD1306_CMD_SET_SCROLL_JUST_LEFT        0x27  // Follow by 6-byte setup
+#define SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT   0x29  // Follow by 5-byte setup
+#define SSD1306_CMD_SET_SCROLL_DIAGONAL_LEFT    0x2A  // Follow by 5-byte setup
 #define SSD1306_CMD_DISPLAY_ON                  0xAF
 #define SSD1306_CMD_DISPLAY_OFF                 0xAE
 #define SSD1306_CMD_ENTIRE_DISPLAY_ON_ENABLED   0xA5
@@ -224,7 +224,7 @@ void SSD1306_reinit(SSD1306_T* display) {
 
     // Div ratio min, freq max.
     cmd_buffer[0] = SSD1306_CMD_SET_DIV_RATIO_AND_FREQ;
-    cmd_buffer[1] = 0xF0; // Div ratio = 1, Freq = max. 
+    cmd_buffer[1] = 0xF0;
     SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
     // Enable charge pump 
@@ -344,7 +344,7 @@ void SSD1306_display_mirror_h(SSD1306_T* display, bool is_enabled) {
     }
     SSD1306_write(display, SSD1306_WRITE_CMD, &cmd, 1);
     
-    // These commands only effect subsequent data, so update the display.
+    // Only effect subsequent data, so update the display.
     SSD1306_display_update(display);
 }
 
@@ -419,14 +419,14 @@ void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_left,
     uint8_t cmd_length;
 
     // Assign the common command values
-    cmd[1]= 0x00;  // Dummy byte
-    cmd[2]= 0x00;  // Start page address 0
+    cmd[1]= 0x00;
+    cmd[2]= 0x00;
     cmd[3]= interval;
     if (display->display_type) {
-        cmd[4]= 0x07;  // End page address 7
+        cmd[4]= 0x07;
     }
     else {
-        cmd[4]= 0x03;  // End page address 3
+        cmd[4]= 0x03;
     }
 
     // Choose the right command and send
@@ -437,7 +437,7 @@ void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_left,
         else {
             cmd[0] = SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT;
         }
-        cmd[5] = 0x01;  // Vertical offset 1
+        cmd[5] = 0x01;
         cmd[6] = SSD1306_CMD_SCROLL_ENABLE;
         cmd_length = 7;
     }
@@ -448,8 +448,8 @@ void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_left,
         else {
             cmd[0] = SSD1306_CMD_SET_SCROLL_JUST_RIGHT;
         }
-        cmd[5] = 0x00;  // Dummy byte
-        cmd[6] = 0xFF;  // Dummy byte
+        cmd[5] = 0x00;
+        cmd[6] = 0xFF;
         cmd[7] = SSD1306_CMD_SCROLL_ENABLE;
         cmd_length = 8;
     }

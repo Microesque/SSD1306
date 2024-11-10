@@ -56,7 +56,7 @@
     } SSD1306_DisplayType;
 
     /*
-     * Buffer array sizes needed for the respective display type.
+     * Buffer sizes needed for the respective display type.
      */
     #define SSD1306_BUFFER_SIZE_32 512 //
     #define SSD1306_BUFFER_SIZE_64 1024
@@ -75,8 +75,7 @@
 
     /*
      * Structure that represents your displays. Initialize with
-     * "SSD1306_init()". Don't access any of these members directly, use the
-     * provided library functions instead.
+     * "SSD1306_init()".
      */
     typedef struct {
         uint8_t* buffer;
