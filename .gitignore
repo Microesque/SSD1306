@@ -1,0 +1,11 @@
+# Ignore everything
+*
+
+# Whitelisted files
+!/.gitignore
+!/LICENSE.txt
+!/README.md
+
+!/lib/
+!/lib/SSD1306.c
+!/lib/SSD1306.h
