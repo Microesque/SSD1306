@@ -231,6 +231,7 @@ void SSD1306_reinit(SSD1306_T* display) {
     SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
     
     // Configure defaults for reinits
+    SSD1306_display_brightness(display, 127);
     SSD1306_display_fully_on(display, false);
     SSD1306_display_inverse(display, false);
     SSD1306_display_mirror_h(display, false);
