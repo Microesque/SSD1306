@@ -62,11 +62,10 @@
     #define SSD1306_BUFFER_SIZE_64 1024
 
     /*
-     * Max. coordinates for the respective display type.
+     * Max. coordinates for both display types.
      */
-    #define SSD1306_X_MAX_32  127 //
+    #define SSD1306_X_MAX  127 //
     #define SSD1306_Y_MAX_32  31 
-    #define SSD1306_X_MAX_64  127 
     #define SSD1306_Y_MAX_64  63 
 
     
@@ -77,7 +76,7 @@
     /*
      * Structure that represents your displays. Initialize with
      * "SSD1306_init()". Don't access any of these members directly, use the
-     * library functions provided instead.
+     * provided library functions instead.
      */
     typedef struct {
         uint8_t* buffer;
@@ -101,6 +100,7 @@
                       uint8_t (*I2C_write)(uint8_t),
                       void (*I2C_stop)(void));
     void SSD1306_reinit(SSD1306_T* display);
+    
     void SSD1306_display_update(SSD1306_T* display);
     void SSD1306_display_brightness(SSD1306_T* display, uint8_t brightness);
     void SSD1306_display_enable(SSD1306_T* display, bool is_enabled);
@@ -108,7 +108,7 @@
     void SSD1306_display_inverse(SSD1306_T* display, bool is_enabled);
     void SSD1306_display_mirror_h(SSD1306_T* display, bool is_enabled);
     void SSD1306_display_mirror_v(SSD1306_T* display, bool is_enabled);
-    void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_lr,
+    void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_left,
                                        bool is_diagonal, uint8_t interval);
     void SSD1306_display_scroll_disable(SSD1306_T* display);
     

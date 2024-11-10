@@ -7,17 +7,20 @@
 
 #define SSD1306_CONTROL_CMD                     0x00
 #define SSD1306_CONTROL_DATA                    0x40
-#define SSD1306_CMD_SET_VERTICAL_SCROLL_AREA    0xA3  // Follow by 2-byte setup
-#define SSD1306_CMD_SET_MUX_RATIO               0xA8  // Follow by 1-byte setup
-#define SSD1306_CMD_SET_MEMORY_ACCESSING_MODE   0x20  // Follow by 1-byte setup
-#define SSD1306_CMD_SET_COM_CONFIGURATION       0xDA  // Follow by 1-byte setup
-#define SSD1306_CMD_SET_COLUMN_ADDRESS          0x21  // Follow by 2-byte setup
-#define SSD1306_CMD_SET_PAGE_ADDRESS            0x22  // Follow by 2-byte setup
-#define SSD1306_CMD_SET_DIV_RATIO_AND_FREQ      0xD5  // Follow by 1-byte setup
-#define SSD1306_CMD_SET_CHARGE_PUMP             0x8D  // Follow by 1-byte setup
+#define SSD1306_CMD_SET_VERTICAL_SCROLL_AREA    0xA3 // Follow by 2-byte setup
+#define SSD1306_CMD_SET_MUX_RATIO               0xA8 // Follow by 1-byte setup
+#define SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE  0x20 // Follow by 1-byte setup
+#define SSD1306_CMD_SET_COM_CONFIGURATION       0xDA // Follow by 1-byte setup
+#define SSD1306_CMD_SET_PAGE_ADDRESS            0x22 // Follow by 2-byte setup
+#define SSD1306_CMD_SET_DIV_RATIO_AND_FREQ      0xD5 // Follow by 1-byte setup
+#define SSD1306_CMD_SET_CHARGE_PUMP             0x8D // Follow by 1-byte setup
+#define SSD1306_CMD_SET_CONTRAST_CONTROL        0x81 // Follow by 1-byte setup
+#define SSD1306_CMD_SET_SCROLL_JUST_RIGHT       0x26 // Follow by 6-byte setup
+#define SSD1306_CMD_SET_SCROLL_JUST_LEFT        0x27 // Follow by 6-byte setup
+#define SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT   0x29 // Follow by 5-byte setup
+#define SSD1306_CMD_SET_SCROLL_DIAGONAL_LEFT    0x2A // Follow by 5-byte setup
 #define SSD1306_CMD_DISPLAY_ON                  0xAF
 #define SSD1306_CMD_DISPLAY_OFF                 0xAE
-#define SSD1306_CMD_SET_CONTRAST_CONTROL        0x81  // Follow by 1-byte setup
 #define SSD1306_CMD_ENTIRE_DISPLAY_ON_ENABLED   0xA5
 #define SSD1306_CMD_ENTIRE_DISPLAY_ON_DISABLED  0xA4
 #define SSD1306_CMD_INVERSE_ENABLED             0xA7
@@ -28,21 +31,16 @@
 #define SSD1306_CMD_SCAN_REMAP_DISABLED         0xC0
 #define SSD1306_CMD_SCROLL_DISABLE              0x2E
 #define SSD1306_CMD_SCROLL_ENABLE               0x2F
-#define SSD1306_CMD_SET_SCROLL_H_RIGHT          0x29 // Follow by 5-byte setup
-#define SSD1306_CMD_SET_SCROLL_H_LEFT           0x2A // Follow by 5-byte setup
 
 
 /*----------------------------------------------------------------------------*/
-/*---------------------------- Library Enums/Macros ---------------------------*/
+/*--------------------------- Library Enums/Macros ---------------------------*/
 /*----------------------------------------------------------------------------*/
 
 typedef enum {
     SSD1306_WRITE_CMD,
     SSD1306_WRITE_DATA
 } SSD1306_WRITE_MODE;
-
-#define SSD1306_BUFFER_MAX_32 511
-#define SSD1306_BUFFER_MAX_64 1023
 
 #define SSD1306_P0_OFFSET 0
 #define SSD1306_P1_OFFSET 128
@@ -191,35 +189,48 @@ void SSD1306_reinit(SSD1306_T* display) {
      are ommited here due to their reset state being the same as intended.
      */
     uint8_t cmd_buffer[3];
-    cmd_buffer[0] = SSD1306_CMD_SET_VERTICAL_SCROLL_AREA;
-    cmd_buffer[1] = 0x00; // Start 0
-    cmd_buffer[2] = 0x20; // End 32
-    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
-    cmd_buffer[0] = SSD1306_CMD_SET_MUX_RATIO;
-    cmd_buffer[1] = 0x1F; // Mux of 32 (Mux = 0x1F+1)
+
+    // For the commands below, default values are correct for 128x64 displays
+    if (display->display_type == SSD1306_DISPLAY_TYPE_32) {
+        // Change page address
+        cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
+        cmd_buffer[1] = 0x00;
+        cmd_buffer[2] = 0x03;
+        SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
+
+        // Change mux ratio (default is correct for 128x64)
+        cmd_buffer[0] = SSD1306_CMD_SET_MUX_RATIO;
+        cmd_buffer[1] = 0x1F;
+        SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+
+        // Change COM configuration (default is correct for 128x64)
+        cmd_buffer[0] = SSD1306_CMD_SET_COM_CONFIGURATION;
+        cmd_buffer[1] = 0x02;
+        SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+
+        // Change vertical scroll area for (default is correct for 128x64)
+        cmd_buffer[0] = SSD1306_CMD_SET_VERTICAL_SCROLL_AREA;
+        cmd_buffer[1] = 0x00;
+        cmd_buffer[2] = 0x20;
+        SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
+    }
+
+    // Horizontal addressing mode
+    cmd_buffer[0] = SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE;
+    cmd_buffer[1] = 0x00;
     SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
-    cmd_buffer[0] = SSD1306_CMD_SET_MEMORY_ACCESSING_MODE;
-    cmd_buffer[1] = 0x00; // Horizontal addressing mode   
-    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
-    cmd_buffer[0] = SSD1306_CMD_SET_COM_CONFIGURATION;
-    cmd_buffer[1] = 0x02; // Sequential, disable remap  
-    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
-    cmd_buffer[0] = SSD1306_CMD_SET_COLUMN_ADDRESS;
-    cmd_buffer[1] = 0x00; // Start 0
-    cmd_buffer[2] = 0x7F; // End 127  
-    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
-    cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
-    cmd_buffer[1] = 0x00; // Start 0
-    cmd_buffer[2] = 0x03; // End 3
-    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
+
+    // Div ratio min, freq max.
     cmd_buffer[0] = SSD1306_CMD_SET_DIV_RATIO_AND_FREQ;
     cmd_buffer[1] = 0xF0; // Div ratio = 1, Freq = max. 
     SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+
+    // Enable charge pump 
     cmd_buffer[0] = SSD1306_CMD_SET_CHARGE_PUMP;
-    cmd_buffer[1] = 0x14; // Enable charge pump  
+    cmd_buffer[1] = 0x14; 
     SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
     
-    // Configure defaults.
+    // Configure defaults for reinits
     SSD1306_display_fully_on(display, false);
     SSD1306_display_inverse(display, false);
     SSD1306_display_mirror_h(display, false);
@@ -237,7 +248,14 @@ void SSD1306_reinit(SSD1306_T* display) {
  * @param display Pointer to an SSD1306_T structure.
  */
 void SSD1306_display_update(SSD1306_T* display) {
-    SSD1306_write(display, SSD1306_WRITE_DATA, display->buffer, SSD1306_BUFFER_SIZE_32);
+    uint16_t buffer_size;
+    if (display->display_type) {
+        buffer_size = SSD1306_BUFFER_SIZE_64;
+    }
+    else {
+        buffer_size = SSD1306_BUFFER_SIZE_32;
+    }
+    SSD1306_write(display, SSD1306_WRITE_DATA, display->buffer, buffer_size);
 }
 
 /**
@@ -249,7 +267,7 @@ void SSD1306_display_update(SSD1306_T* display) {
  */
 void SSD1306_display_brightness(SSD1306_T* display, uint8_t brightness) {
     uint8_t cmd[] = {SSD1306_CMD_SET_CONTRAST_CONTROL, brightness};
-    SSD1306_write(display, SSD1306_WRITE_DATA, cmd, 2);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd, 2);
 }
 
 /**
@@ -348,23 +366,24 @@ void SSD1306_display_mirror_v(SSD1306_T* display, bool is_enabled) {
 /**
  * @brief Starts up a continuous horizontal or diagonal scroll.
  * 
- * Vertical scrolling is not available, and the vertical aspect of the diagonal
- * scroll will always be upwards. These are limitation of the driver chip
- * itself.
+ * Below are all due to the limitations of the driver chip itself:
  * 
- * Note:
+ * - Vertical scrolling by itself is not available.
+ * 
+ * - Diagonal scroll won't work with "128x64" displays.
+ * 
+ * - Vertical aspect of the diagonal scroll will always be upwards.
  * 
  * - Any previous scroll setup will be overwritten, and the scroll will start
  * from the original location.
  * 
- * - Automatically updates the screen with the current buffer values
- * (limitation of the driver chip).
+ * - Automatically updates the screen with the current buffer values.
  * 
- * - Any updates to the display while there's an ongoing scroll
- * will restart the scrolling.
+ * - Any updates to the display while there's an ongoing scroll will restart the
+ * scrolling.
  * 
  * @param display Pointer to an SSD1306_T structure.
- * @param is_lr "true" to scroll left; "false" to scroll right.
+ * @param is_left "true" to scroll left; "false" to scroll right.
  * @param is_diagonal "true" to scroll diagonally; "false" to scroll
  * horizontally.
  * @param interval Interval between each scroll. Must be within [0-7].
@@ -385,7 +404,7 @@ void SSD1306_display_mirror_v(SSD1306_T* display, bool is_enabled) {
  * 
  *  - 7 -> 2 frames
  */
-void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_lr,
+void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_left,
                                    bool is_diagonal, uint8_t interval) {
     // Interval can't be bigger than 7
     if (interval > 7) {return;}
@@ -393,25 +412,45 @@ void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_lr,
     // Disable scrolling first (datasheet p44)
     SSD1306_display_scroll_disable(display);
     
-    uint8_t cmd[7];
-    if (is_lr) {
-        cmd[0] = SSD1306_CMD_SET_SCROLL_H_LEFT;
-    }
-    else {
-        cmd[0] = SSD1306_CMD_SET_SCROLL_H_RIGHT;
-    }
-    cmd[1]= 0x00; // Dummy write (datasheet p28)
-    cmd[2]= 0x00; // Start page address 0 (first page)
+    uint8_t cmd[8];
+    uint8_t cmd_length;
+
+    // Assign the common command values
+    cmd[1]= 0x00;  // Dummy byte
+    cmd[2]= 0x00;  // Start page address 0
     cmd[3]= interval;
-    cmd[4]= 0x03; // End page address 3 (last page)
-    if (is_diagonal) {
-        cmd[5]= 0x01; // Set vertical scrolling offset to 1
+    if (display->display_type) {
+        cmd[4]= 0x07;  // End page address 7
     }
     else {
-        cmd[5]= 0x00; // Set vertical scrolling offset to 0
+        cmd[4]= 0x03;  // End page address 3
     }
-    cmd[6]= SSD1306_CMD_SCROLL_ENABLE;
-    SSD1306_write(display, SSD1306_WRITE_CMD, cmd, 7);
+
+    // Choose the right command and send
+    if (is_diagonal) {
+        if (is_left) {
+            cmd[0] = SSD1306_CMD_SET_SCROLL_DIAGONAL_LEFT;
+        }
+        else {
+            cmd[0] = SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT;
+        }
+        cmd[5] = 0x01;  // Vertical offset 1
+        cmd[6] = SSD1306_CMD_SCROLL_ENABLE;
+        cmd_length = 7;
+    }
+    else {
+        if (is_left) {
+            cmd[0] = SSD1306_CMD_SET_SCROLL_JUST_LEFT;
+        }
+        else {
+            cmd[0] = SSD1306_CMD_SET_SCROLL_JUST_RIGHT;
+        }
+        cmd[5] = 0x00;  // Dummy byte
+        cmd[6] = 0xFF;  // Dummy byte
+        cmd[7] = SSD1306_CMD_SCROLL_ENABLE;
+        cmd_length = 8;
+    }
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd, cmd_length);
 }
 
 /**
@@ -480,7 +519,14 @@ void SSD1306_draw_set_mode(SSD1306_T* display, SSD1306_BufferMode mode) {
  * @param display Pointer to an SSD1306_T structure.
  */
 void SSD1306_draw_clear(SSD1306_T* display) {
-    for (uint16_t i = 0; i < SSD1306_BUFFER_MAX_32; i++) {
+    uint16_t buffer_size;
+    if (display->display_type) {
+        buffer_size = SSD1306_BUFFER_SIZE_64;
+    }
+    else {
+        buffer_size = SSD1306_BUFFER_SIZE_32;
+    }
+    for (uint16_t i = 0; i < buffer_size; i++) {
         display->buffer[i] = 0x00;
     }
 }
@@ -498,7 +544,14 @@ void SSD1306_draw_clear(SSD1306_T* display) {
  * @param display Pointer to an SSD1306_T structure.
  */
 void SSD1306_draw_fill(SSD1306_T* display) {
-    for (uint16_t i = 0; i < SSD1306_BUFFER_MAX_32; i++) {
+    uint16_t buffer_size;
+    if (display->display_type) {
+        buffer_size = SSD1306_BUFFER_SIZE_64;
+    }
+    else {
+        buffer_size = SSD1306_BUFFER_SIZE_32;
+    }
+    for (uint16_t i = 0; i < buffer_size; i++) {
         display->buffer[i] = 0xFF;
     }
 }
@@ -524,8 +577,13 @@ void SSD1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y) {
     // Clip the coordinates that are out of bounds
     if (x < 0) {return;}
     if (y < 0) {return;}
-    if (x > SSD1306_X_MAX_32) {return;}
-    if (y > SSD1306_Y_MAX_32) {return;}
+    if (x > SSD1306_X_MAX) {return;}
+    if (display->display_type) {
+        if (y > SSD1306_Y_MAX_64) {return;}
+    }
+    else {
+        if (y > SSD1306_Y_MAX_32) {return;}
+    }
     
     uint16_t index;
     uint8_t mask;
