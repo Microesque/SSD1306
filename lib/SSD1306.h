@@ -112,7 +112,6 @@
                                        bool is_diagonal, uint8_t interval);
     void SSD1306_display_scroll_disable(SSD1306_T* display);
     
-    SSD1306_BufferMode SSD1306_draw_get_mode(SSD1306_T* display);
     void SSD1306_draw_set_mode(SSD1306_T* display, SSD1306_BufferMode mode);
     void SSD1306_draw_clear(SSD1306_T* display);
     void SSD1306_draw_fill(SSD1306_T* display);
