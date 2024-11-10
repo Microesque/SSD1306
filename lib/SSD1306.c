@@ -33,8 +33,13 @@
 
 
 /*----------------------------------------------------------------------------*/
-/*------------------------------ Library Macros ------------------------------*/
+/*---------------------------- Library Enums/Macros ---------------------------*/
 /*----------------------------------------------------------------------------*/
+
+typedef enum {
+    SSD1306_WRITE_CMD,
+    SSD1306_WRITE_DATA
+} SSD1306_WRITE_MODE;
 
 #define SSD1306_BUFFER_MAX_32 511
 #define SSD1306_BUFFER_MAX_64 1023
@@ -117,33 +122,23 @@ void SSD1306_init(SSD1306_T* display,
 }
 
 /**
- * @brief Sends commands to the display.
+ * @brief Sends commands or data to the display.
  * 
  * @param display Pointer to an SSD1306_T structure.
+ * @param write_mode Command vs data mode.
  * @param data Pointer to an array of bytes to be sent to the display.
  * @param length Number of bytes in the data array to send.
  */
-void SSD1306_write_cmd(SSD1306_T* display, uint8_t* data, uint8_t length) {
+static void SSD1306_write(SSD1306_T* display, SSD1306_WRITE_MODE write_mode,
+                          uint8_t* data, uint16_t length) {
     display->I2C_start();
     display->I2C_write((uint8_t)(display->I2C_address << 1));
-    display->I2C_write(SSD1306_CONTROL_CMD);
-    for (uint8_t i = 0; i < length; i++) {
-        display->I2C_write(data[i]);
+    if (write_mode) {
+        display->I2C_write(SSD1306_CONTROL_DATA);
     }
-    display->I2C_stop();
-}
-
-/**
- * @brief Sends data to the display.
- * 
- * @param display Pointer to an SSD1306_T structure.
- * @param data Pointer to an array of bytes to be sent to the display.
- * @param length Number of bytes in the data array to send.
- */
-void SSD1306_write_data(SSD1306_T* display, uint8_t* data, uint16_t length) {
-    display->I2C_start();
-    display->I2C_write((uint8_t)(display->I2C_address << 1));
-    display->I2C_write(SSD1306_CONTROL_DATA);
+    else {
+        display->I2C_write(SSD1306_CONTROL_CMD);
+    }
     for (uint16_t i = 0; i < length; i++) {
         display->I2C_write(data[i]);
     }
@@ -199,30 +194,30 @@ void SSD1306_reinit(SSD1306_T* display) {
     cmd_buffer[0] = SSD1306_CMD_SET_VERTICAL_SCROLL_AREA;
     cmd_buffer[1] = 0x00; // Start 0
     cmd_buffer[2] = 0x20; // End 32
-    SSD1306_write_cmd(display, cmd_buffer, 3);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
     cmd_buffer[0] = SSD1306_CMD_SET_MUX_RATIO;
     cmd_buffer[1] = 0x1F; // Mux of 32 (Mux = 0x1F+1)
-    SSD1306_write_cmd(display, cmd_buffer, 2);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
     cmd_buffer[0] = SSD1306_CMD_SET_MEMORY_ACCESSING_MODE;
     cmd_buffer[1] = 0x00; // Horizontal addressing mode   
-    SSD1306_write_cmd(display, cmd_buffer, 2);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
     cmd_buffer[0] = SSD1306_CMD_SET_COM_CONFIGURATION;
     cmd_buffer[1] = 0x02; // Sequential, disable remap  
-    SSD1306_write_cmd(display, cmd_buffer, 2);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
     cmd_buffer[0] = SSD1306_CMD_SET_COLUMN_ADDRESS;
     cmd_buffer[1] = 0x00; // Start 0
     cmd_buffer[2] = 0x7F; // End 127  
-    SSD1306_write_cmd(display, cmd_buffer, 3);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
     cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
     cmd_buffer[1] = 0x00; // Start 0
     cmd_buffer[2] = 0x03; // End 3
-    SSD1306_write_cmd(display, cmd_buffer, 3);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
     cmd_buffer[0] = SSD1306_CMD_SET_DIV_RATIO_AND_FREQ;
     cmd_buffer[1] = 0xF0; // Div ratio = 1, Freq = max. 
-    SSD1306_write_cmd(display, cmd_buffer, 2);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
     cmd_buffer[0] = SSD1306_CMD_SET_CHARGE_PUMP;
     cmd_buffer[1] = 0x14; // Enable charge pump  
-    SSD1306_write_cmd(display, cmd_buffer, 2);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
     
     // Configure defaults.
     SSD1306_display_fully_on(display, false);
@@ -242,7 +237,7 @@ void SSD1306_reinit(SSD1306_T* display) {
  * @param display Pointer to an SSD1306_T structure.
  */
 void SSD1306_display_update(SSD1306_T* display) {
-    SSD1306_write_data(display, display->buffer, SSD1306_BUFFER_SIZE_32);
+    SSD1306_write(display, SSD1306_WRITE_DATA, display->buffer, SSD1306_BUFFER_SIZE_32);
 }
 
 /**
@@ -254,7 +249,7 @@ void SSD1306_display_update(SSD1306_T* display) {
  */
 void SSD1306_display_brightness(SSD1306_T* display, uint8_t brightness) {
     uint8_t cmd[] = {SSD1306_CMD_SET_CONTRAST_CONTROL, brightness};
-    SSD1306_write_cmd(display, cmd, 2);
+    SSD1306_write(display, SSD1306_WRITE_DATA, cmd, 2);
 }
 
 /**
@@ -272,7 +267,7 @@ void SSD1306_display_enable(SSD1306_T* display, bool is_enabled) {
     else {
         cmd = SSD1306_CMD_DISPLAY_OFF;
     }
-    SSD1306_write_cmd(display, &cmd, 1);
+    SSD1306_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 }
 
 /**
@@ -290,7 +285,7 @@ void SSD1306_display_fully_on(SSD1306_T* display, bool is_enabled) {
     else {
         cmd = SSD1306_CMD_ENTIRE_DISPLAY_ON_DISABLED;
     }
-    SSD1306_write_cmd(display, &cmd, 1);
+    SSD1306_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 }
 
 /**
@@ -308,7 +303,7 @@ void SSD1306_display_inverse(SSD1306_T* display, bool is_enabled) {
     else {
         cmd = SSD1306_CMD_INVERSE_DISABLED;
     }
-    SSD1306_write_cmd(display, &cmd, 1);
+    SSD1306_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 }
 
 /**
@@ -326,7 +321,7 @@ void SSD1306_display_mirror_h(SSD1306_T* display, bool is_enabled) {
     else {
         cmd = SSD1306_CMD_SEGMENT_REMAP_DISABLED;
     }
-    SSD1306_write_cmd(display, &cmd, 1);
+    SSD1306_write(display, SSD1306_WRITE_CMD, &cmd, 1);
     
     // These commands only effect subsequent data, so update the display.
     SSD1306_display_update(display);
@@ -347,7 +342,7 @@ void SSD1306_display_mirror_v(SSD1306_T* display, bool is_enabled) {
     else {
         cmd = SSD1306_CMD_SCAN_REMAP_DISABLED;
     }
-    SSD1306_write_cmd(display, &cmd, 1);
+    SSD1306_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 }
 
 /**
@@ -416,7 +411,7 @@ void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_lr,
         cmd[5]= 0x00; // Set vertical scrolling offset to 0
     }
     cmd[6]= SSD1306_CMD_SCROLL_ENABLE;
-    SSD1306_write_cmd(display, cmd, 7);
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd, 7);
 }
 
 /**
@@ -427,7 +422,7 @@ void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_lr,
  */
 void SSD1306_display_scroll_disable(SSD1306_T* display) {
     uint8_t cmd = SSD1306_CMD_SCROLL_DISABLE;
-    SSD1306_write_cmd(display, &cmd, 1);
+    SSD1306_write(display, SSD1306_WRITE_CMD, &cmd, 1);
     
     // Update the display (datasheet p36)
     SSD1306_display_update(display);
