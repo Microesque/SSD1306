@@ -130,11 +130,10 @@
         void (*I2C_stop)(void);
         SSD1306_BufferMode buffer_mode;
         const GFXfont* font;
+        uint8_t font_scale;
         int16_t cursor_x0;
         int16_t cursor_x;
         int16_t cursor_y;
-        uint8_t tab_interval;
-        uint8_t font_scale;
     } SSD1306_T;
     
 
@@ -206,6 +205,5 @@
     void SSD1306_set_font(SSD1306_T* display, const GFXfont* font);
     void SSD1306_set_font_scale(SSD1306_T* display, uint8_t scale);
     void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);
-    void SSD1306_set_tab_interval(SSD1306_T* display, uint8_t interval);
 
 #endif
