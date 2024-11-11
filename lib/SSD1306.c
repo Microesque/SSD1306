@@ -597,7 +597,7 @@ void SSD1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y) {
  * 
  * Note:
  * 
- * - Clears the pixel instead if the display is in "clear" mode.
+ * - Clears the pixels instead if the display is in "clear" mode.
  * 
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
@@ -637,7 +637,7 @@ void SSD1306_draw_line_h(SSD1306_T* display, int16_t x0, int16_t y0,
  * 
  * Note:
  * 
- * - Clears the pixel instead if the display is in "clear" mode.
+ * - Clears the pixels instead if the display is in "clear" mode.
  * 
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
@@ -676,7 +676,7 @@ void SSD1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
  * 
  * Note:
  * 
- * - Clears the pixel instead if the display is in "clear" mode.
+ * - Clears the pixels instead if the display is in "clear" mode.
  * 
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
@@ -770,7 +770,7 @@ void SSD1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0, int16_t x1,
  * 
  * Note:
  * 
- * - Clears the pixel instead if the display is in "clear" mode.
+ * - Clears the pixels instead if the display is in "clear" mode.
  * 
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
@@ -798,7 +798,7 @@ void SSD1306_draw_triangle(SSD1306_T* display, int16_t x0, int16_t y0,
  * 
  * Note:
  * 
- * - Clears the pixel instead if the display is in "clear" mode.
+ * - Clears the pixels instead if the display is in "clear" mode.
  * 
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
@@ -934,7 +934,7 @@ void SSD1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * 
  * Note:
  * 
- * - Clears the pixel instead if the display is in "clear" mode.
+ * - Clears the pixels instead if the display is in "clear" mode.
  * 
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
@@ -978,7 +978,7 @@ void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
  * 
  * Note:
  * 
- * - Clears the pixel instead if the display is in "clear" mode.
+ * - Clears the pixels instead if the display is in "clear" mode.
  * 
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
