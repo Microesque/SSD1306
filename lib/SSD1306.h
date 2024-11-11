@@ -32,6 +32,7 @@
 
     #include <stdint.h>
     #include <stdbool.h>
+    #include <stddef.h>
 
     
     /*------------------------------------------------------------------------*/
@@ -80,6 +81,29 @@
     /*------------------------------------------------------------------------*/
     /*------------------------------ Structures ------------------------------*/
     /*------------------------------------------------------------------------*/
+    
+    /*
+    Adafruit GFX Glyph structure.
+    */
+    typedef struct {
+        uint16_t bitmap_offset;
+        uint8_t width;
+        uint8_t height;
+        uint8_t x_advance;
+        int8_t x_offset;
+        int8_t y_offset;
+    } GFXglyph;
+
+    /*
+    Adafruit GFX Font structure.
+    */
+    typedef struct {
+        uint8_t* bitmap;
+        GFXglyph* glyph;
+        uint16_t first;
+        uint16_t last;
+        uint8_t y_advance;
+    } GFXfont;
 
     /*
     Structure that represents your displays. Initialize with "SSD1306_init()".
@@ -92,8 +116,14 @@
         uint8_t (*I2C_write)(uint8_t);
         void (*I2C_stop)(void);
         SSD1306_BufferMode buffer_mode;
+        const GFXfont* font;
+        int16_t cursor_x0;
+        int16_t cursor_x;
+        int16_t cursor_y;
+        uint8_t tab_interval;
     } SSD1306_T;
     
+
     /*------------------------------------------------------------------------*/
     /*-------------------------- Available Functions -------------------------*/
     /*------------------------------------------------------------------------*/
@@ -153,5 +183,10 @@
     void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
                              const uint8_t* bmp, int16_t width,
                              int16_t height, bool has_bg);
+    void SSD1306_draw_char(SSD1306_T* display, char c);
+    void SSD1306_draw_str(SSD1306_T* display, const char* str);
+
+    void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);
+    void SSD1306_set_font(SSD1306_T* display, const GFXfont* font);
 
 #endif

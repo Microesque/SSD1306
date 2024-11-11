@@ -143,6 +143,11 @@ void SSD1306_init(SSD1306_T* display,
     display->I2C_start = I2C_start;
     display->I2C_write = I2C_write;
     display->I2C_stop = I2C_stop;
+    display->font = NULL;
+    display->cursor_x0 = 0;
+    display->cursor_x = 0;
+    display->cursor_y = 0;
+    display->tab_interval = 2;
     SSD1306_reinit(display);
 }
 
@@ -1484,4 +1489,91 @@ void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
             mask <<= 1;
         }
     }
+}
+
+static void SSD1306_draw_char_helper(SSD1306_T* display, unsigned char c) {
+    // Dereference necessary values
+    uint8_t* bmp = display->font->bitmap;
+    GFXglyph* glyph = &display->font->glyph[c - display->font->first];
+    uint16_t bmp_offset = glyph->bitmap_offset;
+    uint8_t height = glyph->height;
+    uint8_t width = glyph->width;
+    int8_t x_offset = glyph->x_offset;
+    int8_t y_offset = glyph->y_offset;
+
+    // Draw the character
+    uint8_t mask = 0x80;
+    for (uint8_t h = 0; h < height; h++) {
+        for (uint8_t w = 0; w < width; w++) {
+            if (bmp[bmp_offset] & mask) {
+                SSD1306_draw_pixel(display, display->cursor_x + x_offset + w,
+                                            display->cursor_y + y_offset + h);
+            }
+            if (mask == 1) {
+                mask = 0x80;
+                bmp_offset++;
+            }
+            else {
+                mask >>= 1;
+            }
+        }
+    }
+
+    // Advance the cursor
+    display->cursor_x += glyph->x_advance;
+}
+
+void SSD1306_draw_char(SSD1306_T* display, char c) {
+    if (display->font == NULL) {
+        // If there is no font
+        SSD1306_draw_rect(display, display->cursor_x, display->cursor_y, 5, -8);
+        display->cursor_x += 9;
+    }
+    else if (c == '\n') {
+        // Handle "line feed" seperately
+        display->cursor_y += display->font->y_advance;
+    }
+    else if (c == '\r') {
+        // Handle "carriage return" seperately
+        display->cursor_x = display->cursor_x0;
+    }
+    else if (c == '\t') {
+        // Handle "horizontal tab" seperately
+        for (uint8_t i = 0; i < display->tab_interval; i++) {
+            SSD1306_draw_char_helper(display, ' ');
+        }
+    }
+    else if (c < display->font->first || c > display->font->last) {
+        // If the character doesn't exist in the font
+        GFXglyph* glyph = &display->font->glyph[3];  // Arbitrary character (#)
+        uint8_t width = glyph->width;
+        uint8_t height = glyph->height;
+        SSD1306_draw_rect(display, display->cursor_x, display->cursor_y,
+                          width, -height);
+        display->cursor_x += glyph->x_advance;
+    }
+    else {
+        // Draw the character
+        SSD1306_draw_char_helper(display, c);
+    }
+}
+
+void SSD1306_draw_str(SSD1306_T* display, const char* str) {
+    for (uint16_t i = 0; str[i] != '\0'; i++) {
+        SSD1306_draw_char(display, str[i]);
+    }
+}
+
+void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y) {
+    display->cursor_x0 = x;
+    display->cursor_x = x;
+    display->cursor_y = y;
+}
+
+void SSD1306_set_font(SSD1306_T* display, const GFXfont* font) {
+    display->font = font;
+}
+
+void SSD1306_set_tab_interval(SSD1306_T* display, uint8_t interval) {
+    display->tab_interval = interval;
 }
