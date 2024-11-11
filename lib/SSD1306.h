@@ -113,9 +113,9 @@
         uint8_t* bitmap;
         uint8_t width;
         uint8_t height;
-        uint8_t x_advance;
         int8_t x_offset;
         int8_t y_offset;
+        uint8_t x_advance;
     } SSD1306_CustomChar;
 
     /*
