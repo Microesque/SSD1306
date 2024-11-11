@@ -150,5 +150,8 @@
                              int16_t r);
     void SSD1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                                   int16_t r);
+    void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
+                             const uint8_t* bmp, int16_t width,
+                             int16_t height, bool has_bg);
 
 #endif

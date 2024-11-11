@@ -1304,8 +1304,8 @@ void SSD1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
  * the corresponding bits to enable drawing for those quadrants. For example,
  * "0b0110" enables drawing for quadrants 2 and 3.
  */
-void SSD1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
-                           uint8_t quadrant) {
+void SSD1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+                           int16_t r, uint8_t quadrant) {
     // Radius can't be negative, skip invalid quadrants
     if (r < 0) {return;}
     if (quadrant > 0b1111) {return;}
@@ -1417,4 +1417,71 @@ void SSD1306_draw_circle(SSD1306_T* display, int16_t x0, int16_t y0,
 void SSD1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                          int16_t r) {
     SSD1306_draw_arc_fill(display, x0, y0, r, 0b1111);
+}
+
+/**
+ * @brief Draws a bitmap image onto the buffer, starting from the specified
+ * coordinates and extending down-right.
+ * 
+ * Note:
+ * 
+ * - If the display is in "clear" mode, the inverse of the image will be drawn.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of the starting point.
+ * @param y0 y-coordinate of the starting point.
+ * @param width Width of the image in pixels. Negative values are ignored. The
+ * value MUST match the bitmap width or the drawing may get corrupted, and
+ * random parts of the memory may be accessed. For example, for an image with a
+ * resolution of "60x40", the width value should be "60".
+ * @param height Height of the image in pixels. Negative values are ignored. The
+ * value MUST match the bitmap height or the drawing may get corrupted, and
+ * random parts of the memory may be accessed. For example, for an image with a
+ * resolution of "60x40", the height value should be "40".
+ * @param bmp Pointer to a bitmap. The array format should be 1-bit per pixel, 
+ * so each byte represents 8 pixels. The least significant bit (LSB) of each
+ * byte should represent the value of the top pixel. Every byte should represent
+ * 1-column and 8-rows; meaning, "bmp[width + 1]" should contain the start of
+ * the next 8-rows of the image.
+ * @param has_bg "true" to overwrite the contents in the background; "false" to
+ * keep the transparency.
+ */
+void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
+                         const uint8_t* bmp, int16_t width, int16_t height,
+                         bool has_bg) {
+    if (width < 0) {return;}
+    if (height < 0) {return;}
+
+    uint8_t mask = 1;
+    int16_t w_offset = 0;
+
+    // Iterate for each width for each height
+    for (int16_t h = 0; h < height; h++) {
+        // Draw the entire row
+        for (int16_t w = 0; w < width; w++) {
+            if (bmp[w_offset + w] & mask) {
+                SSD1306_draw_pixel(display, x0 + w, y0 + h);
+            }
+            else if (has_bg) {
+                display->buffer_mode ^= 1;
+                SSD1306_draw_pixel(display, x0 + w, y0 + h);
+                display->buffer_mode ^= 1;
+            }
+        }
+
+        // Rotate the mask
+        if (mask == 0x80) {
+            mask = 1;
+            w_offset += width;
+        }
+        else {
+            mask <<= 1;
+        }
+    }
 }
