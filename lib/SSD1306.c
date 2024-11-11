@@ -1024,9 +1024,6 @@ void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
  */
 void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                             int16_t width, int16_t height) {
-    // Draw nothing if width or height is 0
-    if (width == 0 || height == 0) {return;}
-    
     // Shift the rectangle if width or height is negative
     if (width < 0) {
         width = -width;
