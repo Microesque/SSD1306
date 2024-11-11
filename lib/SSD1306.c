@@ -425,7 +425,8 @@ void SSD1306_display_mirror_v(SSD1306_T* display, bool is_enabled) {
  * @param is_left 'true' to scroll left; 'false' to scroll right.
  * @param is_diagonal 'true' to scroll diagonally; 'false' to scroll
  * horizontally.
- * @param interval Interval between each scroll. Must be within [0-7].
+ * @param interval Interval between each scroll. Values higher than 7 will loop
+ * down the list.
  * 
  *  - 0 -> 5 frames
  * 
@@ -975,7 +976,7 @@ void SSD1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  */
 void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
                        int16_t width, int16_t height) {
-    // Width and height can't be 0
+    // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
     
     // Shift the rectangle if width or height is negative
@@ -1019,7 +1020,7 @@ void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
  */
 void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                             int16_t width, int16_t height) {
-    // Width and height can't be 0
+    // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
     
     // Shift the rectangle if width or height is negative
@@ -1066,7 +1067,7 @@ void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  */
 void SSD1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
                              int16_t width, int16_t height, int16_t r) {
-    // Width and height can't be 0
+    // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
     
     // Shift the rectangle if width or height is negative
@@ -1136,7 +1137,7 @@ void SSD1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
  */
 void SSD1306_draw_rect_round_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                                   int16_t width, int16_t height, int16_t r) {
-    // Width and height can't be 0
+    // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
     
     // Shift the rectangle if width or height is negative
@@ -1206,15 +1207,15 @@ void SSD1306_draw_rect_round_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param x0 x-coordinate of the arc center.
  * @param y0 y-coordinate of the arc center.
  * @param r Radius of the arc in pixels. Negative values are ignored.
- * @param quadrant A 4-bit value where each bit represents a quadrant. Values
- * bigger than 4-bits are ignored. The most significant bit (MSB) represents
+ * @param quadrant A 4-bit value where each bit represents a quadrant. Only the 
+ * right most 4-bits are checked. The most significant bit (MSB) represents
  * quadrant-4, while the least significant bit (LSB) represents quadrant-1. Set
  * the corresponding bits to enable drawing for those quadrants. For example,
- * '0b0110' enables drawing for quadrants 2 and 3.
+ * '0b0101' enables drawing for quadrants 1 and 3.
  */
 void SSD1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
                       uint8_t quadrant) {
-    // Radius can't be negative, skip invalid quadrants
+    // Draw nothing if radius is 0
     if (r < 0) {return;}
     if (quadrant > 0b1111) {return;}
     
@@ -1296,15 +1297,15 @@ void SSD1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
  * @param x0 x-coordinate of the arc center.
  * @param y0 y-coordinate of the arc center.
  * @param r Radius of the arc in pixels. Negative values are ignored.
- * @param quadrant A 4-bit value where each bit represents a quadrant. Values
- * bigger than 4-bits are ignored. The most significant bit (MSB) represents
+ * @param quadrant A 4-bit value where each bit represents a quadrant. Only the 
+ * right most 4-bits are checked. The most significant bit (MSB) represents
  * quadrant-4, while the least significant bit (LSB) represents quadrant-1. Set
  * the corresponding bits to enable drawing for those quadrants. For example,
- * '0b0110' enables drawing for quadrants 2 and 3.
+ * '0b0101' enables drawing for quadrants 1 and 3.
  */
 void SSD1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                            int16_t r, uint8_t quadrant) {
-    // Radius can't be negative, skip invalid quadrants
+    // Draw nothing if radius is 0
     if (r < 0) {return;}
     if (quadrant > 0b1111) {return;}
     
@@ -1434,14 +1435,14 @@ void SSD1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the starting point.
  * @param y0 y-coordinate of the starting point.
- * @param width Width of the image in pixels. Negative values are ignored. The
- * value MUST match the bitmap width, or the drawing may get corrupted and
- * random parts of the memory may be accessed. For example, for an image with a
- * resolution of "60x40", the width value should be '60'.
- * @param height Height of the image in pixels. Negative values are ignored. The
- * value MUST match the bitmap height, or the drawing may get corrupted and
- * random parts of the memory may be accessed. For example, for an image with a
- * resolution of "60x40", the height value should be '40'.
+ * @param width Width of the image in pixels. The value MUST match the bitmap
+ * width, or the drawing may get corrupted and random parts of the memory may
+ * be accessed. For example, for an image with a resolution of "60x40", the
+ * width value should be '60'.
+ * @param height Height of the image in pixels. The value MUST match the bitmap
+ * height, or the drawing may get corrupted and random parts of the memory may
+ * be accessed. For example, for an image with a resolution of "60x40", the
+ * height value should be '40'.
  * @param bmp Pointer to a bitmap. The array format should be 1-bit per pixel, 
  * so each byte represents 8 pixels. The least significant bit (LSB) of each
  * byte should represent the value of the top pixel. Every byte should represent
@@ -1522,7 +1523,7 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
     // Handle "line feed" seperately
     if (c == '\n') {
         display->cursor_y += (display->font->y_advance * display->font_scale);
-        c = '\r';  // Will be caught below
+        c = '\r';
     }
 
     // Handle "carriage return" seperately
