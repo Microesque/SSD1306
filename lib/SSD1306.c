@@ -148,6 +148,7 @@ void SSD1306_init(SSD1306_T* display,
     display->cursor_x = 0;
     display->cursor_y = 0;
     display->tab_interval = 2;
+    display->font_scale = 1;
     SSD1306_reinit(display);
 }
 
@@ -1494,6 +1495,7 @@ void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
 static void SSD1306_draw_char_helper(SSD1306_T* display, unsigned char c) {
     // Dereference necessary values
     uint8_t* bmp = display->font->bitmap;
+    uint8_t scale = display->font_scale;
     GFXglyph* glyph = &display->font->glyph[c - display->font->first];
     uint16_t bmp_offset = glyph->bitmap_offset;
     uint8_t height = glyph->height;
@@ -1501,13 +1503,14 @@ static void SSD1306_draw_char_helper(SSD1306_T* display, unsigned char c) {
     int8_t x_offset = glyph->x_offset;
     int8_t y_offset = glyph->y_offset;
 
-    // Draw the character
+    // Draw the character (with scale in mind)
     uint8_t mask = 0x80;
     for (uint8_t h = 0; h < height; h++) {
         for (uint8_t w = 0; w < width; w++) {
             if (bmp[bmp_offset] & mask) {
-                SSD1306_draw_pixel(display, display->cursor_x + x_offset + w,
-                                            display->cursor_y + y_offset + h);
+                int16_t x0 = display->cursor_x + x_offset + (w * scale);
+                int16_t y0 = display->cursor_y + y_offset + (h * scale);
+                SSD1306_draw_rect_fill(display, x0, y0, scale, scale);
             }
             if (mask == 1) {
                 mask = 0x80;
@@ -1520,7 +1523,7 @@ static void SSD1306_draw_char_helper(SSD1306_T* display, unsigned char c) {
     }
 
     // Advance the cursor
-    display->cursor_x += glyph->x_advance;
+    display->cursor_x += (glyph->x_advance * scale);
 }
 
 void SSD1306_draw_char(SSD1306_T* display, char c) {
@@ -1531,7 +1534,7 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
     }
     else if (c == '\n') {
         // Handle "line feed" seperately
-        display->cursor_y += display->font->y_advance;
+        display->cursor_y += (display->font->y_advance * display->font_scale);
     }
     else if (c == '\r') {
         // Handle "carriage return" seperately
@@ -1635,6 +1638,10 @@ void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y) {
 
 void SSD1306_set_font(SSD1306_T* display, const GFXfont* font) {
     display->font = font;
+}
+
+void SSD1306_set_font_scale(SSD1306_T* display, uint8_t scale) {
+    display->font_scale = scale;
 }
 
 void SSD1306_set_tab_interval(SSD1306_T* display, uint8_t interval) {
