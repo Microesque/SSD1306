@@ -1540,21 +1540,28 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
     int8_t y_offset = glyph->y_offset;
 
     // Draw the character (with scale in mind)
-    uint8_t mask = 0x80;
+    uint8_t pixels;
+    uint8_t count = 8;
     for (uint8_t h = 0; h < height; h++) {
         for (uint8_t w = 0; w < width; w++) {
-            if (bmp[bmp_offset] & mask) {
-                int16_t x0 = display->cursor_x + x_offset + (w * scale);
-                int16_t y0 = display->cursor_y + y_offset + (h * scale);
-                SSD1306_draw_rect_fill(display, x0, y0, scale, scale);
-            }
-            if (mask == 1) {
-                mask = 0x80;
+            // Read the next byte every 8 pixels
+            if (count == 8) {
+                count = 0;
+                pixels = bmp[bmp_offset];
                 bmp_offset++;
             }
-            else {
-                mask >>= 1;
+
+            // Draw the next pixel
+            if (pixels & 0x80) {
+                SSD1306_draw_rect_fill(
+                                    display,
+                                    display->cursor_x + x_offset + (w * scale),
+                                    display->cursor_y + y_offset + (h * scale),
+                                    scale,
+                                    scale);
             }
+            pixels <<= 1;
+            count++;
         }
     }
     display->cursor_x += (glyph->x_advance * scale);
