@@ -66,7 +66,16 @@
      */
     #define SSD1306_X_MAX  127 //
     #define SSD1306_Y_MAX_32  31 
-    #define SSD1306_Y_MAX_64  63 
+    #define SSD1306_Y_MAX_64  63
+    
+    /*
+     * Masks that can be OR'd to be used in the "SSD1306_draw_arc()" and 
+     * "SSD1306_draw_arc_fill()" functions.
+     */
+    #define SSD1306_ARC_QUAD1  0x1  // Mask to enable quadrant-1
+    #define SSD1306_ARC_QUAD2  0x2  // Mask to enable quadrant-2
+    #define SSD1306_ARC_QUAD3  0x4  // Mask to enable quadrant-3
+    #define SSD1306_ARC_QUAD4  0x8  // Mask to enable quadrant-4
 
     
     /*------------------------------------------------------------------------*/
