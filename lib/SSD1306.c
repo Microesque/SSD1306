@@ -1195,3 +1195,27 @@ void SSD1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r
         }
     }
 }
+
+/**
+ * @brief Draws a circle with the specified radius, centered at the specified
+ * coordinates.
+ * 
+ * Note:
+ * 
+ * - Clears the pixels instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of the circle center.
+ * @param y0 y-coordinate of the circle center.
+ * @param r Radius of the arc in pixels. Negative values are ignored.
+ */
+void SSD1306_draw_circle(SSD1306_T* display, int16_t x0, int16_t y0,
+                         int16_t r) {
+    SSD1306_draw_arc(display, x0, y0, r, 0b1111);
+}
