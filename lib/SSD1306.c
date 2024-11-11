@@ -187,8 +187,8 @@ static void SSD1306_write(SSD1306_T* display, SSD1306_WRITE_MODE write_mode,
  */
 void SSD1306_reinit(SSD1306_T* display) {
     /*
-     Initialize the display (from datasheet p28-32, p34-46, p64). Some commands
-     are ommited here due to their reset state being the same as intended.
+    Initialize the display (from datasheet p28-32, p34-46, p64). Some commands
+    are ommited here due to their reset state being the same as intended.
      */
     uint8_t cmd_buffer[3];
 

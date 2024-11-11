@@ -1,4 +1,4 @@
-/*
+/**
  * MIT License
  * 
  * Copyright (c) 2024 Ahmet Burak Irmak (https://youtube.com/Microesque)
@@ -39,8 +39,8 @@
     /*------------------------------------------------------------------------*/
 
     /*
-     * If the display is in "draw" mode, all of the draw methods will turn those
-     * pixels on. In "clear" mode, they will turn those pixels off instead.
+    If the display is in "draw" mode, all of the draw methods will turn those
+    pixels on. In "clear" mode, they will turn those pixels off instead.
      */
     typedef enum {
         SSD1306_MODE_CLEAR,
@@ -48,7 +48,7 @@
     } SSD1306_BufferMode;
     
     /*
-     * Choose according to your display type (128x32 or 128x64).
+    Choose according to your display type (128x32 or 128x64).
      */
     typedef enum {
         SSD1306_DISPLAY_TYPE_32,
@@ -56,35 +56,33 @@
     } SSD1306_DisplayType;
 
     /*
-     * Buffer sizes needed for the respective display type (128x32 or 128x64).
+    Buffer sizes needed for the respective display type (128x32 or 128x64).
      */
     #define SSD1306_BUFFER_SIZE_32 512 //
     #define SSD1306_BUFFER_SIZE_64 1024
 
     /*
-     * Max. coordinates for both display types.
+    Max. coordinates for both display types.
      */
     #define SSD1306_X_MAX  127 //
     #define SSD1306_Y_MAX_32  31 
     #define SSD1306_Y_MAX_64  63
     
     /*
-     * Masks that can be OR'd to be used in the "SSD1306_draw_arc()" and 
-     * "SSD1306_draw_arc_fill()" functions.
+    Masks that can be OR'd to be used in the "SSD1306_draw_arc()" and
+    "SSD1306_draw_arc_fill()" functions.
      */
     #define SSD1306_ARC_QUAD1  0x1  // Mask to enable quadrant-1
     #define SSD1306_ARC_QUAD2  0x2  // Mask to enable quadrant-2
     #define SSD1306_ARC_QUAD3  0x4  // Mask to enable quadrant-3
     #define SSD1306_ARC_QUAD4  0x8  // Mask to enable quadrant-4
 
-    
     /*------------------------------------------------------------------------*/
     /*------------------------------ Structures ------------------------------*/
     /*------------------------------------------------------------------------*/
 
     /*
-     * Structure that represents your displays. Initialize with
-     * "SSD1306_init()".
+    Structure that represents your displays. Initialize with "SSD1306_init()".
      */
     typedef struct {
         uint8_t* buffer;
