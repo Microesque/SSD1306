@@ -1500,7 +1500,7 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
     // Handle "line feed" seperately
     if (c == '\n') {
         display->cursor_y += (display->font->y_advance * display->font_scale);
-        return;
+        c = '\r';  // Will be caught below
     }
 
     // Handle "carriage return" seperately
