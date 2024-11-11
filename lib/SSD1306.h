@@ -119,5 +119,7 @@
                              int16_t width);
     void SSD1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
                              int16_t height);
+    void SSD1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0,
+                           int16_t x1, int16_t y1);
 
 #endif

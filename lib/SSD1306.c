@@ -670,3 +670,97 @@ void SSD1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
         y0 += yi;
     }
 }
+
+/**
+ * @brief Draws a straight line between the specified start and end coordinates.
+ * 
+ * Note:
+ * 
+ * - Clears the pixel instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of the starting point.
+ * @param y0 y-coordinate of the starting point.
+ * @param x1 x-coordinate of the ending point.
+ * @param y1 y-coordinate of the ending point.
+ */
+void SSD1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0, int16_t x1,
+                       int16_t y1) {
+    // Handle the straight line cases seperately
+    if (x0 == x1) {
+        SSD1306_draw_pixel(display, x1, y1);
+        SSD1306_draw_line_v(display, x0, y0, y1 - y0);
+        return;
+    }
+    if (y0 == y1) {
+        SSD1306_draw_pixel(display, x1, y1);
+        SSD1306_draw_line_h(display, x0, y0, x1 - x0);
+        return;
+    }
+    
+    int16_t dx, dy, D, yi, temp;
+    uint8_t is_swapped;
+    
+    // Swap coordinates if slope > 1 (compensated when drawing)
+    dx = x1 - x0;
+    dy = y1 - y0;
+    if (dx < 0) {
+        dx = -dx;
+    }
+    if (dy < 0) {
+        dy = -dy;
+    }
+    if (dy > dx) {
+        temp = x0;
+        x0 = y0;
+        y0 = temp;
+        temp = x1;
+        x1 = y1;
+        y1 = temp;
+        is_swapped = true;
+    }
+    else {
+        is_swapped = false;
+    }
+    
+    // Make sure x0 < x1
+    if (x0 > x1) {
+        temp = x0;
+        x0 = x1;
+        x1 = temp;
+        temp = y0;
+        y0 = y1;
+        y1 = temp;
+    }
+    
+    // Draw the line
+    dx = x1 - x0;
+    dy = y1 - y0;
+    D = -((uint16_t)dx >> 1); // -dx/2 (in case not optimized, dx is always > 0)
+    if (dy < 0) {
+        yi = -1;
+        dy = -dy;
+    }
+    else {
+        yi = 1;
+    }
+    for (; x0 <= x1; x0++) {
+        if (is_swapped) {
+            SSD1306_draw_pixel(display, y0, x0);
+        }
+        else {
+            SSD1306_draw_pixel(display, x0, y0);
+        }
+        D += dy;
+        if (D > 0) {
+            D -= dx;
+            y0 += yi;
+        }
+    }
+}
