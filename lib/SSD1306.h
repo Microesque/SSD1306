@@ -139,6 +139,9 @@
                                 int16_t width, int16_t height);
     void SSD1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
                                  int16_t width, int16_t height, int16_t r);
+    void SSD1306_draw_rect_round_fill(SSD1306_T* display, int16_t x0,
+                                      int16_t y0, int16_t width, int16_t height,
+                                      int16_t r);
     void SSD1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
                           uint8_t quadrant);
     void SSD1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0,
