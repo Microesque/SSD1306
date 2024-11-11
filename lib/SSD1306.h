@@ -161,7 +161,6 @@
                                        bool is_diagonal, uint8_t interval);
     void SSD1306_display_scroll_disable(SSD1306_T* display);
     
-    void SSD1306_draw_set_mode(SSD1306_T* display, SSD1306_BufferMode mode);
     void SSD1306_draw_clear(SSD1306_T* display);
     void SSD1306_draw_fill(SSD1306_T* display);
     void SSD1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y);
@@ -202,6 +201,7 @@
     void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits);
     void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...);
 
+    void SSD1306_draw_set_mode(SSD1306_T* display, SSD1306_BufferMode mode);
     void SSD1306_set_font(SSD1306_T* display, const GFXfont* font);
     void SSD1306_set_font_scale(SSD1306_T* display, uint8_t scale);
     void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);

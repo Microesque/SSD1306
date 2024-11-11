@@ -514,21 +514,6 @@ void SSD1306_display_scroll_disable(SSD1306_T* display) {
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Changes the display buffer mode (draw/clear).
- * 
- * Notes:
- * 
- * - When set to 'draw', draw functions will turn the pixels on. When set to
- * 'clear', draw functions will turn the pixels off instead.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param mode Buffer mode to be set.
- */
-void SSD1306_draw_set_mode(SSD1306_T* display, SSD1306_BufferMode mode) {
-    display->buffer_mode = mode;
-}
-
-/**
  * @brief Clears the entire display (all pixels off).
  * 
  * Notes:
@@ -1761,6 +1746,34 @@ void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
     vsnprintf(str, sizeof(str), format, args);
     va_end(args);
     SSD1306_draw_str(display, str);
+}
+
+
+
+
+
+
+
+
+
+
+/*----------------------------------------------------------------------------*/
+/*---------------------------------- Setters ---------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+/**
+ * @brief Changes the display buffer mode (draw/clear).
+ * 
+ * Notes:
+ * 
+ * - When set to 'draw', draw functions will turn the pixels on. When set to
+ * 'clear', draw functions will turn the pixels off instead.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @param mode Buffer mode to be set.
+ */
+void SSD1306_draw_set_mode(SSD1306_T* display, SSD1306_BufferMode mode) {
+    display->buffer_mode = mode;
 }
 
 /**
