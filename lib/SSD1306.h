@@ -121,5 +121,7 @@
                              int16_t height);
     void SSD1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0,
                            int16_t x1, int16_t y1);
+    void SSD1306_draw_triangle(SSD1306_T* display, int16_t x0, int16_t y0,
+                               int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 
 #endif

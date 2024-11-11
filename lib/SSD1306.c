@@ -764,3 +764,31 @@ void SSD1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0, int16_t x1,
         }
     }
 }
+
+/**
+ * @brief Draws a triangle between the specified coordinates.
+ * 
+ * Note:
+ * 
+ * - Clears the pixel instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of point-0.
+ * @param y0 y-coordinate of point-0.
+ * @param x1 x-coordinate of point-1.
+ * @param y1 y-coordinate of point-1.
+ * @param x2 x-coordinate of point-2.
+ * @param y2 y-coordinate of point-2.
+ */
+void SSD1306_draw_triangle(SSD1306_T* display, int16_t x0, int16_t y0,
+                           int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
+    SSD1306_draw_line(display, x0, y0, x1, y1);
+    SSD1306_draw_line(display, x1, y1, x2, y2);
+    SSD1306_draw_line(display, x2, y2, x0, y0);
+}
