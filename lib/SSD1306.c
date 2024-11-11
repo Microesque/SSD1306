@@ -792,3 +792,138 @@ void SSD1306_draw_triangle(SSD1306_T* display, int16_t x0, int16_t y0,
     SSD1306_draw_line(display, x1, y1, x2, y2);
     SSD1306_draw_line(display, x2, y2, x0, y0);
 }
+
+/**
+ * @brief Draws a filled triangle between the specified coordinates.
+ * 
+ * Note:
+ * 
+ * - Clears the pixel instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of point-0.
+ * @param y0 y-coordinate of point-0.
+ * @param x1 x-coordinate of point-1.
+ * @param y1 y-coordinate of point-1.
+ * @param x2 x-coordinate of point-2.
+ * @param y2 y-coordinate of point-2.
+ */
+void SSD1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+                               int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
+    int16_t dx01, dy01, dx02, dy02, dx12, dy12;
+    int16_t y, xa, xb, dxa, dxb, width;
+    int16_t temp;
+    
+    // Sort the coordinates by y position
+    if (y0 > y1) {
+        temp = y0;
+        y0 = y1;
+        y1 = temp;
+        temp = x0;
+        x0 = x1;
+        x1 = temp;
+    }
+    if (y1 > y2) {
+        temp = y1;
+        y1 = y2;
+        y2 = temp;
+        temp = x1;
+        x1 = x2;
+        x2 = temp;
+    }
+    if (y0 > y1) {
+        temp = y0;
+        y0 = y1;
+        y1 = temp;
+        temp = x0;
+        x0 = x1;
+        x1 = temp;
+    }
+    
+    // If all coordinates are on the same line (return to avoid /0)
+    if (y0 == y2) {
+        // Find the left most and right most coordinates
+        if (x0 < x1) {
+            xa = x0;
+            xb = x1;
+        }
+        else {
+            xa = x1;
+            xb = x0;
+        }
+        if (x2 < xa) {
+            xa = x2;
+        }
+        if (x2 > xb) {
+            xb = x2;
+        }
+        
+        // Draw the horizontal line
+        SSD1306_draw_line_h(display, xa, y0, xb - xa + 1);
+        return;
+    }
+    
+    // Initialize the delta variables
+    dx01 = x1 - x0;
+    dy01 = y1 - y0;
+    dx02 = x2 - x0;
+    dy02 = y2 - y0;
+    dx12 = x2 - x1;
+    dy12 = y2 - y1;
+    
+    // Draw the upper triangle (flat bottom)
+    // (if y0 == y1, loop is skipped so no /0)
+    // (if y1 == y2, draw the y1 line as well)
+    if (y1 == y2) {
+        y1++;
+    }
+    dxa = 0;
+    dxb = 0;
+    for (y = y0; y < y1; y++) {
+        // Interpolate x-coordinates for the current scanline     
+        xa = x0 + (dxa / dy01);
+        xb = x0 + (dxb / dy02);
+        dxa += dx01;
+        dxb += dx02;
+        
+        // Draw the horizontal line for the current scanline
+        width = xb - xa;
+        if (width < 0) {
+            width--;
+        }
+        else {
+            width++;
+        }
+        SSD1306_draw_line_h(display, xa, y, width);
+    }
+    
+    // Draw the lower triangle (flat top)
+    // (if y1 == y2, line is already drawn above, so return)
+    if (y1 == y2) {
+        return;
+    }
+    dxa = 0;
+    for (; y <= y2; y++) {
+        // Interpolate x-coordinates for the current scanline     
+        xa = x1 + (dxa / dy12);
+        xb = x0 + (dxb / dy02);
+        dxa += dx12;
+        dxb += dx02;
+        
+        // Draw the horizontal line for the current scanline
+        width = xb - xa;
+        if (width < 0) {
+            width--;
+        }
+        else {
+            width++;
+        }
+        SSD1306_draw_line_h(display, xa, y, width);
+    }
+}
