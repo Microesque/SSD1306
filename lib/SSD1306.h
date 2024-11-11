@@ -57,8 +57,8 @@
     pixels on. In "clear" mode, they will turn those pixels off instead.
      */
     typedef enum {
-        SSD1306_MODE_CLEAR,
-        SSD1306_MODE_DRAW
+        SSD1306_BUFFER_MODE_CLEAR,
+        SSD1306_BUFFER_MODE_DRAW
     } SSD1306_BufferMode;
     
     /*
@@ -201,7 +201,7 @@
     void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits);
     void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...);
 
-    void SSD1306_draw_set_mode(SSD1306_T* display, SSD1306_BufferMode mode);
+    void SSD1306_set_buffer_mode(SSD1306_T* display, SSD1306_BufferMode mode);
     void SSD1306_set_font(SSD1306_T* display, const GFXfont* font);
     void SSD1306_set_font_scale(SSD1306_T* display, uint8_t scale);
     void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);

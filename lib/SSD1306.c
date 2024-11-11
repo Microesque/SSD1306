@@ -269,7 +269,7 @@ void SSD1306_reinit(SSD1306_T* display) {
     SSD1306_display_mirror_h(display, false);
     SSD1306_display_mirror_v(display, false);
     SSD1306_display_scroll_disable(display);
-    SSD1306_draw_set_mode(display, SSD1306_MODE_DRAW);
+    SSD1306_set_buffer_mode(display, SSD1306_BUFFER_MODE_DRAW);
     SSD1306_draw_clear(display);
     SSD1306_display_update(display);
     SSD1306_display_enable(display, true);
@@ -1762,7 +1762,7 @@ void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Changes the display buffer mode (draw/clear).
+ * @brief Changes the buffer mode of the display (draw/clear).
  * 
  * Notes:
  * 
@@ -1772,7 +1772,7 @@ void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param mode Buffer mode to be set.
  */
-void SSD1306_draw_set_mode(SSD1306_T* display, SSD1306_BufferMode mode) {
+void SSD1306_set_buffer_mode(SSD1306_T* display, SSD1306_BufferMode mode) {
     display->buffer_mode = mode;
 }
 
