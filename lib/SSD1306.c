@@ -159,14 +159,16 @@ void SSD1306_init(SSD1306_T* display,
  */
 static void SSD1306_write(SSD1306_T* display, SSD1306_WRITE_MODE write_mode,
                           const uint8_t* data, uint16_t length) {
-    display->I2C_start();
-    display->I2C_write((uint8_t)(display->I2C_address << 1));
+    uint8_t mode;
     if (write_mode) {
-        display->I2C_write(SSD1306_CONTROL_DATA);
+        mode = SSD1306_CONTROL_DATA;
     }
     else {
-        display->I2C_write(SSD1306_CONTROL_CMD);
+        mode = SSD1306_CONTROL_CMD;
     }
+    display->I2C_start();
+    display->I2C_write((uint8_t)(display->I2C_address << 1));
+    display->I2C_write(mode);
     for (uint16_t i = 0; i < length; i++) {
         display->I2C_write(data[i]);
     }
