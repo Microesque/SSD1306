@@ -1553,13 +1553,13 @@ void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
  * 
  * Notes:
  * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling 'SSD1306_set_font()'.
+ * 
  * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
  * 
  * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
  * scaled by default).
- * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
  * 
  * - If the current font doesn't support the character, it'll be drawn as a '?'.
  * 
@@ -1654,13 +1654,13 @@ void SSD1306_draw_char_custom(SSD1306_T* display, const SSD1306_CustomChar* c) {
  * 
  * - Expects the string to be null-terminated!
  * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling 'SSD1306_set_font()'.
+ * 
  * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
  * 
  * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
  * scaled by default).
- * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
  * 
  * - If the current font doesn't support any characters, they'll be drawn as a
  * '?'.
@@ -1692,13 +1692,13 @@ void SSD1306_draw_str(SSD1306_T* display, const char* str) {
  * 
  * - Meant to be a lower memory alternative for 'SSD1306_draw_printf()'.
  * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling 'SSD1306_set_font()'.
+ * 
  * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
  * 
  * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
  * scaled by default).
- * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
  * 
  * - Clears the pixels instead if the buffer is in 'clear' mode.
  * 
@@ -1745,6 +1745,9 @@ void SSD1306_draw_int32(SSD1306_T* display, int32_t num) {
  * 
  * - Meant to be a lower memory alternative for 'SSD1306_draw_printf()'.
  * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling 'SSD1306_set_font()'.
+ * 
  * - The integer part of the number must fit within a 'signed 32-bit' range, or
  * the number will overflow! No such limit for the fractional part or the number
  * of digits shown.
@@ -1753,9 +1756,6 @@ void SSD1306_draw_int32(SSD1306_T* display, int32_t num) {
  * 
  * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
  * scaled by default).
- * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
  * 
  * - Clears the pixels instead if the buffer is in 'clear' mode.
  * 
@@ -1796,19 +1796,19 @@ void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
  * 
  * Notes:
  * 
- * - Maximum 255 characters including the null termination. Changable through
- * the 'SD1306_PRINTF_CHAR_LIMIT' macro in the header file.
+ * - The 'SD1306_PRINTF_CHAR_LIMIT' macro in the header file determines how
+ * many character can be printed at a time.
  * 
  * - For lower memory alternatives, consider using 'SSD1306_draw_str()',
  * 'SSD1306_draw_int32()', and 'SSD1306_draw_float()' instead.
+ * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling 'SSD1306_set_font()'.
  * 
  * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
  * 
  * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
  * scaled by default).
- * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
  * 
  * - If the current font doesn't support any characters, they'll be drawn as a
  * '?'.
