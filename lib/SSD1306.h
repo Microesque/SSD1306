@@ -33,8 +33,21 @@
     #include <stdint.h>
     #include <stdbool.h>
     #include <stddef.h>
+    #include <stdarg.h>
+    #include <stdio.h>
 
+
+    /*------------------------------------------------------------------------*/
+    /*----------------------------- Library Setup ----------------------------*/
+    /*------------------------------------------------------------------------*/
+
+    /*
+    Maximum number of characters that "SSD1306_draw_printf()" function can
+    display at a time. This includes the null termination.
+    */
+    #define SD1306_PRINTF_MAX_CHAR 255
     
+
     /*------------------------------------------------------------------------*/
     /*-------------------------- Useful Enums/Macros -------------------------*/
     /*------------------------------------------------------------------------*/
@@ -185,6 +198,7 @@
                              int16_t height, bool has_bg);
     void SSD1306_draw_char(SSD1306_T* display, char c);
     void SSD1306_draw_str(SSD1306_T* display, const char* str);
+    void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...);
 
     void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);
     void SSD1306_set_font(SSD1306_T* display, const GFXfont* font);

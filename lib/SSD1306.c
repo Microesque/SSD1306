@@ -1564,6 +1564,15 @@ void SSD1306_draw_str(SSD1306_T* display, const char* str) {
     }
 }
 
+void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
+    char str[SD1306_PRINTF_MAX_CHAR];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(str, sizeof(str), format, args);
+    va_end(args);
+    SSD1306_draw_str(display, str);
+}
+
 void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y) {
     display->cursor_x0 = x;
     display->cursor_x = x;
