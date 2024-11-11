@@ -115,5 +115,7 @@
     void SSD1306_draw_clear(SSD1306_T* display);
     void SSD1306_draw_fill(SSD1306_T* display);
     void SSD1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y);
-    
+    void SSD1306_draw_line_h(SSD1306_T* display, int16_t x0, int16_t y0,
+                             int16_t width);
+
 #endif

@@ -590,3 +590,43 @@ void SSD1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y) {
         display->buffer[index] = display->buffer[index] & ~mask;
     }
 }
+
+/**
+ * @brief Draws a horizontal line starting from the specified coordinates and
+ * extending to the specified length.
+ * 
+ * Note:
+ * 
+ * - Clears the pixel instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of the starting point.
+ * @param y0 y-coordinate of the starting point.
+ * @param width Width of the line. A positive value extends the line to the
+ * right, while a negative value extends it to the left.
+ */
+void SSD1306_draw_line_h(SSD1306_T* display, int16_t x0, int16_t y0,
+                         int16_t width) {
+    int16_t xi;
+    
+    // Change direction if width is negative
+    if (width < 0) {
+        width = -width;
+        xi = -1;
+    }
+    else {
+        xi = 1;
+    }
+    
+    // Draw the line
+    for (; width > 0; width--) {
+        SSD1306_draw_pixel(display, x0, y0);
+        x0 += xi;
+    }
+}
