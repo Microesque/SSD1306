@@ -973,7 +973,7 @@ void SSD1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param width Width of the rectangle. A positive value extends the rectangle
  * to the right, while a negative value extends it to the left.
  * @param height Height of the rectangle. A positive value extends the rectangle
- * upward, while a negative value extends it downward.
+ * downward, while a negative value extends it upward.
  */
 void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
                        int16_t width, int16_t height) {
@@ -1017,7 +1017,7 @@ void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param width Width of the rectangle. A positive value extends the rectangle
  * to the right, while a negative value extends it to the left.
  * @param height Height of the rectangle. A positive value extends the rectangle
- * upward, while a negative value extends it downward.
+ * downward, while a negative value extends it upward.
  */
 void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                             int16_t width, int16_t height) {
@@ -1061,7 +1061,7 @@ void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param width Width of the rectangle. A positive value extends the rectangle
  * to the right, while a negative value extends it to the left.
  * @param height Height of the rectangle. A positive value extends the rectangle
- * upward, while a negative value extends it downward.
+ * downward, while a negative value extends it upward.
  * @param r Radius of the corner arcs. If the given radius is too large, it will
  * be limited to the maximum radius possible. Passing zero or a negative value
  * will result in a normal rectangle.
@@ -1131,7 +1131,7 @@ void SSD1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param width Width of the rectangle. A positive value extends the rectangle
  * to the right, while a negative value extends it to the left.
  * @param height Height of the rectangle. A positive value extends the rectangle
- * upward, while a negative value extends it downward.
+ * downward, while a negative value extends it upward.
  * @param r Radius of the corner arcs. If the given radius is too large, it will
  * be limited to the maximum radius possible. Passing zero or a negative value
  * will result in a normal rectangle.
