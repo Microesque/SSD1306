@@ -1630,18 +1630,18 @@ void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
     SSD1306_draw_str(display, str);
 }
 
-void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y) {
-    display->cursor_x0 = x;
-    display->cursor_x = x;
-    display->cursor_y = y;
-}
-
 void SSD1306_set_font(SSD1306_T* display, const GFXfont* font) {
     display->font = font;
 }
 
 void SSD1306_set_font_scale(SSD1306_T* display, uint8_t scale) {
     display->font_scale = scale;
+}
+
+void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y) {
+    display->cursor_x0 = x;
+    display->cursor_x = x;
+    display->cursor_y = y;
 }
 
 void SSD1306_set_tab_interval(SSD1306_T* display, uint8_t interval) {
