@@ -446,9 +446,6 @@ void SSD1306_display_mirror_v(SSD1306_T* display, bool is_enabled) {
  */
 void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_left,
                                    bool is_diagonal, uint8_t interval) {
-    // Interval can't be bigger than 7
-    if (interval > 7) {return;}
-    
     // Disable scrolling first (datasheet p44)
     SSD1306_display_scroll_disable(display);
     
@@ -1217,7 +1214,6 @@ void SSD1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
                       uint8_t quadrant) {
     // Draw nothing if radius is 0
     if (r < 0) {return;}
-    if (quadrant > 0b1111) {return;}
     
     // Draw the 4 way corner pixels
     if (quadrant & 0b1100) {
@@ -1307,7 +1303,6 @@ void SSD1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                            int16_t r, uint8_t quadrant) {
     // Draw nothing if radius is 0
     if (r < 0) {return;}
-    if (quadrant > 0b1111) {return;}
     
     // Draw the 4 way corner lines
     if (quadrant & 0b1100) {
@@ -1452,11 +1447,8 @@ void SSD1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * keep the transparency.
  */
 void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
-                         const uint8_t* bmp, int16_t width, int16_t height,
+                         const uint8_t* bmp, uint16_t width, uint16_t height,
                          bool has_bg) {
-    if (width < 0) {return;}
-    if (height < 0) {return;}
-
     uint8_t mask = 1;
     int16_t w_offset = 0;
 
