@@ -36,21 +36,7 @@
 
 
     /*------------------------------------------------------------------------*/
-    /*----------------------------- Library Setup ----------------------------*/
-    /*------------------------------------------------------------------------*/
-
-    /*
-    Maximum number of characters that 'SSD1306_draw_printf()' can display at a
-    time, including the null termination.
-    
-    "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of RAM will be reserved
-    (total, not per display), but only if you use 'SSD1306_draw_printf()'.
-    */
-    #define SD1306_PRINTF_CHAR_LIMIT 255
-    
-
-    /*------------------------------------------------------------------------*/
-    /*-------------------------- Useful Enums/Macros -------------------------*/
+    /*----------------------------- Enums/Macros -----------------------------*/
     /*------------------------------------------------------------------------*/
 
     /*
@@ -140,28 +126,123 @@
         void (*I2C_start)(void);
         uint8_t (*I2C_write)(uint8_t);
         void (*I2C_stop)(void);
+        SSD1306_DisplayType display_type;
         uint8_t* buffer;
         SSD1306_BufferMode buffer_mode;
-        SSD1306_DisplayType display_type;
         const GFXfont* font;
         uint8_t font_scale;
         int16_t cursor_x0;
         int16_t cursor_x;
         int16_t cursor_y;
     } SSD1306_T;
+
+
+    /*------------------------------------------------------------------------*/
+    /*----------------------------- Library Setup ----------------------------*/
+    /*------------------------------------------------------------------------*/
+
+    /*
+    Maximum number of characters that 'SSD1306_draw_printf()' can display at a
+    time, including the null termination.
     
+    "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of RAM will be reserved
+    (total, not per display), but only if you use 'SSD1306_draw_printf()'.
+    */
+    #define SD1306_PRINTF_CHAR_LIMIT 255
+
+    /*
+    Below, you can configure the default settings for the display after calling
+    'SSD1306_init()' or 'SSD1306_reinit()'. Square brackets denote valid values.
+    
+    If you're unsure about what these do, just leave them as they are. All of
+    the settings below have an equivalent function to setup/change, all of
+    which also come with a comprehensive description. 
+    */
+
+    /*
+    Brightness level [0-255].
+    */
+    #define SSD1306_DEFAULT_BRIGHTNESS 127
+
+    /*
+    Should the display be fully on [true | false].
+    */
+    #define SSD1306_DEFAULT_FULLY_ON false
+
+    /*
+    Should the display be inverted [true | false].
+    */
+    #define SSD1306_DEFAULT_INVERSE false
+
+    /*
+    Should the display be mirrored horizontally [true | false].
+    */
+    #define SSD1306_DEFAULT_MIRROR_H false
+
+    /*
+    Should the display be mirrored vertically [true | false].
+    */
+    #define SSD1306_DEFAULT_MIRROR_V false
+
+    /*
+    Should the display be enabled [true | false].
+    */
+    #define SSD1306_DEFAULT_ENABLE true
+
+    /*
+    Buffer mode [SSD1306_BUFFER_MODE_CLEAR | SSD1306_BUFFER_MODE_DRAW].
+    */
+    #define SSD1306_DEFAULT_BUFFER_MODE SSD1306_BUFFER_MODE_DRAW
+
+    /*
+    Should the buffer be cleared [true | false].
+    */
+    #define SSD1306_DEFAULT_CLEAR_BUFFER true
+
+    /*
+    Should the buffer be filled [true | false].
+    */
+    #define SSD1306_DEFAULT_FILL_BUFFER false
+
+    /*
+    Default font, 'NULL' means no font [NULL, &<GFXfont>].
+
+    To set up a default font, include the header file of your font above the
+    macro, then put the 'GFXfont' variable address as the value.
+
+    Ex:
+        #include "../fonts/RandomFont.h"
+        #define SSD1306_DEFAULT_FONT &RandomFont
+    */
+    #define SSD1306_DEFAULT_FONT NULL
+
+    /*
+    Font scale [0-255].
+    */
+    #define SSD1306_DEFAULT_FONT_SCALE 1
+
+    /*
+    Cursor x-coordinate [-32768...32767].
+    */
+    #define SSD1306_DEFAULT_CURSOR_X 0
+
+    /*
+    Cursor y-coordinate [-32768...32767].
+    */
+    #define SSD1306_DEFAULT_CURSOR_Y 15
+
 
     /*------------------------------------------------------------------------*/
     /*-------------------------- Available Functions -------------------------*/
     /*------------------------------------------------------------------------*/
     
     void SSD1306_init(SSD1306_T* display,
-                      uint8_t* buffer,
-                      SSD1306_DisplayType display_type,
                       uint8_t I2C_address,
                       void (*I2C_start)(void),
                       uint8_t (*I2C_write)(uint8_t),
-                      void (*I2C_stop)(void));
+                      void (*I2C_stop)(void),
+                      SSD1306_DisplayType display_type,
+                      uint8_t* buffer);
     void SSD1306_reinit(SSD1306_T* display);
     
     void SSD1306_display_update(SSD1306_T* display);

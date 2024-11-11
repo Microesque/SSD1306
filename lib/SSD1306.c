@@ -42,6 +42,7 @@
 #define SSD1306_CMD_SET_MUX_RATIO               0xA8  // Follow by 1-byte setup
 #define SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE  0x20  // Follow by 1-byte setup
 #define SSD1306_CMD_SET_COM_CONFIGURATION       0xDA  // Follow by 1-byte setup
+#define SSD1306_CMD_SET_COLUMN_ADDRESS          0x21  // Follow by 2-byte setup
 #define SSD1306_CMD_SET_PAGE_ADDRESS            0x22  // Follow by 2-byte setup
 #define SSD1306_CMD_SET_DIV_RATIO_AND_FREQ      0xD5  // Follow by 1-byte setup
 #define SSD1306_CMD_SET_CHARGE_PUMP             0x8D  // Follow by 1-byte setup
@@ -104,56 +105,47 @@ static const uint16_t SSD1306_PAGE_OFFSETS[] = {
 /**
  * @brief Initializes an 'SSD1306_T' structure as well as its physical display.
  * 
- * Defaults to:
+ * Notes:
  * 
- *  - Display is in draw mode.
+ * - If you want to re-initialize the display, use 'SSD1306_reinit()' instead.
+ * It does the same thing without having to re-initialize the structure and 
+ * extra arguments.
  * 
- *  - Both the display and the buffer are cleared.
+ * - The display will revert to its default configurations. You can change
+ * these configurations individually in the header file.
  * 
- *  - Display on.
+ * - Any ongoing scrolls will be disabled (limitation of the driver chip).
  * 
- *  - Display brightness: 127.
- * 
- *  - Vertical mirroring disabled.
- * 
- *  - Horizontal mirroring disabled.
- * 
- *  - Inverse mode disabled.
- * 
- *  - Fully on mode disabled.
- * 
- *  - Scrolling disabled.
+ * - Display will be updated (limitation of the driver chip).
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
- * @param buffer Pointer to an array to be used as the buffer for that
- * display. Use the macros in the header file to declare an array according
- * to your display type.
- * @param display_type Type of your display (128x32 or 128x64).
  * @param I2C_address 7-bit address of your display.
  * @param I2C_start Pointer to your function to initiate an I2C start
  * condition.
  * @param I2C_write Pointer to your function to send an 8-bit data on the I2C
  * bus.
  * @param I2C_stop Pointer to your function to initiate an I2C stop condition.
+ * @param display_type Type of your display (128x32 or 128x64).
+ * @param buffer Pointer to an array that'll be used as the buffer for that
+ * display. Use the macros in the header file to declare an array with the
+ * appropriate size according to your display type.
  */
 void SSD1306_init(SSD1306_T* display,
-                  uint8_t* buffer,
-                  SSD1306_DisplayType display_type,
                   uint8_t I2C_address,
                   void (*I2C_start)(void),
                   uint8_t (*I2C_write)(uint8_t),
-                  void (*I2C_stop)(void)){
-    display->buffer = buffer;
-    display->display_type = display_type;
+                  void (*I2C_stop)(void),
+                  SSD1306_DisplayType display_type,
+                  uint8_t* buffer){
+    // SSD1306_T structure initializations
     display->I2C_address = I2C_address;
     display->I2C_start = I2C_start;
     display->I2C_write = I2C_write;
     display->I2C_stop = I2C_stop;
-    display->font = NULL;
-    display->cursor_x0 = 0;
-    display->cursor_x = 0;
-    display->cursor_y = 0;
-    display->font_scale = 1;
+    display->display_type = display_type;
+    display->buffer = buffer;
+
+    // Display initialization (rest of the structure is initialized here)
     SSD1306_reinit(display);
 }
 
@@ -195,42 +187,47 @@ static void SSD1306_write(SSD1306_T* display, SSD1306_WRITE_MODE write_mode,
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Re-initializes the display. Basically the same as calling
- * 'SSD1306_init()', but without initializing the structure or having to pass
- * the other parameters again.
+ * @brief Re-initializes the display.
  * 
- * Defaults to:
+ * Notes:
  * 
- *  - Display is in draw mode.
+ * - Basically the same as calling 'SSD1306_init()', but without initializing
+ * the structure or having to pass the other parameters again.
  * 
- *  - Both the display and the buffer are cleared.
+ * - The display will revert to its default configurations. You can change
+ * these configurations individually in the header file.
  * 
- *  - Display on.
+ * - Any ongoing scrolls will be disabled (limitation of the driver chip).
  * 
- *  - Display brightness: 127.
- * 
- *  - Vertical mirroring disabled.
- * 
- *  - Horizontal mirroring disabled.
- * 
- *  - Inverse mode disabled.
- * 
- *  - Fully on mode disabled.
- * 
- *  - Scrolling disabled.
+ * - Display will be updated (limitation of the driver chip).
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  */
 void SSD1306_reinit(SSD1306_T* display) {
+    // Disable scrolls to avoid showing corrupted content
+    SSD1306_display_scroll_disable(display);
+
+    // Disable display to avoid showing jittering
+    SSD1306_display_enable(display, false);
+
     /*
     Initialize the display (from datasheet p28-32, p34-46, p64). Some commands
-    are ommited here due to their reset state being the same as intended.
+    are ommited here since their default state is the same as intended, and the
+    library never changes them.
      */
     uint8_t cmd_buffer[3];
 
-    // For the commands below, default values are correct for 128x64 displays
-    if (display->display_type == SSD1306_DISPLAY_TYPE_32) {
-        // Change page address
+    // For "128x64" displays
+    if (display->display_type) {
+        // Set page address (also resets the data address)
+        cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
+        cmd_buffer[1] = 0x00;
+        cmd_buffer[2] = 0x07;
+        SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
+    }
+    // For "128x32" displays
+    else {
+        // Set page address (also resets the data address)
         cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
         cmd_buffer[1] = 0x00;
         cmd_buffer[2] = 0x03;
@@ -253,6 +250,12 @@ void SSD1306_reinit(SSD1306_T* display) {
         SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
     }
 
+    // Set column address (also resets the data address)
+    cmd_buffer[0] = SSD1306_CMD_SET_COLUMN_ADDRESS;
+    cmd_buffer[1] = 0x00;
+    cmd_buffer[2] = 0x7F;
+    SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
+
     // Horizontal addressing mode
     cmd_buffer[0] = SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE;
     cmd_buffer[1] = 0x00;
@@ -267,18 +270,29 @@ void SSD1306_reinit(SSD1306_T* display) {
     cmd_buffer[0] = SSD1306_CMD_SET_CHARGE_PUMP;
     cmd_buffer[1] = 0x14; 
     SSD1306_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
-    
-    // Configure defaults for reinits
-    SSD1306_display_brightness(display, 127);
-    SSD1306_display_fully_on(display, false);
-    SSD1306_display_inverse(display, false);
-    SSD1306_display_mirror_h(display, false);
-    SSD1306_display_mirror_v(display, false);
-    SSD1306_display_scroll_disable(display);
-    SSD1306_set_buffer_mode(display, SSD1306_BUFFER_MODE_DRAW);
-    SSD1306_draw_clear(display);
-    SSD1306_display_update(display);
-    SSD1306_display_enable(display, true);
+
+
+    /*
+    Initialize the defaults in case they were changed.
+    'SSD1306_display_mirror_h()' updates the screen, so no separate call needed.
+     */
+    #if SSD1306_DEFAULT_CLEAR_BUFFER == true
+        SSD1306_draw_clear(display);
+    #endif
+    #if SSD1306_DEFAULT_FILL_BUFFER == true
+        SSD1306_draw_fill(display);
+    #endif
+    SSD1306_display_brightness(display, SSD1306_DEFAULT_BRIGHTNESS);
+    SSD1306_display_fully_on(display, SSD1306_DEFAULT_FULLY_ON);
+    SSD1306_display_inverse(display, SSD1306_DEFAULT_INVERSE);
+    SSD1306_display_mirror_h(display, SSD1306_DEFAULT_MIRROR_H);
+    SSD1306_display_mirror_v(display, SSD1306_DEFAULT_MIRROR_V);
+    SSD1306_display_enable(display, SSD1306_DEFAULT_ENABLE);
+    SSD1306_set_buffer_mode(display, SSD1306_DEFAULT_BUFFER_MODE);
+    SSD1306_set_font(display, SSD1306_DEFAULT_FONT);
+    SSD1306_set_font_scale(display, SSD1306_DEFAULT_FONT_SCALE);
+    SSD1306_set_cursor(display, SSD1306_DEFAULT_CURSOR_X,
+                                SSD1306_DEFAULT_CURSOR_Y);
 }
 
 /**
