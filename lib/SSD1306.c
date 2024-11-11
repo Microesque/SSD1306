@@ -927,3 +927,47 @@ void SSD1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
         SSD1306_draw_line_h(display, xa, y, width);
     }
 }
+
+/**
+ * @brief Draws a rectangle starting from the specified coordinates and
+ * extending to the specified lengths.
+ * 
+ * Note:
+ * 
+ * - Clears the pixel instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of the starting point.
+ * @param y0 y-coordinate of the starting point.
+ * @param width Width of the rectangle. A positive value extends the rectangle
+ * to the right, while a negative value extends it to the left.
+ * @param height Height of the rectangle. A positive value extends the rectangle
+ * upward, while a negative value extends it downward.
+ */
+void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
+                       int16_t width, int16_t height) {
+    // Width and height can't be 0
+    if (width == 0 || height == 0) {return;}
+    
+    // Shift the rectangle if width or height is negative
+    if (width < 0) {
+        width = -width;
+        x0 -= (width - 1);
+    }
+    if (height < 0) {
+        height = -height;
+        y0 -= (height - 1);
+    }
+    
+    // Draw the rectangle
+    SSD1306_draw_line_h(display, x0, y0, width);
+    SSD1306_draw_line_h(display, x0, y0 + height - 1, width);
+    SSD1306_draw_line_v(display, x0, y0, height);
+    SSD1306_draw_line_v(display, x0 + width - 1, y0, height);
+}
