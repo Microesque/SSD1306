@@ -1494,61 +1494,55 @@ void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
 void SSD1306_draw_char(SSD1306_T* display, char c) {
     // If there is no font
     if (display->font == NULL) {
-        SSD1306_draw_rect(display, display->cursor_x, display->cursor_y, 5, -8);
-        display->cursor_x += 9;
+        return;
     }
-    // Handle "line feed" seperately
-    else if (c == '\n') {
-        display->cursor_y += (display->font->y_advance * display->font_scale);
-    }
-    // Handle "carriage return" seperately
-    else if (c == '\r') {
-        display->cursor_x = display->cursor_x0;
-    }
-    // Draw the invalid character
-    else if (c < display->font->first || c > display->font->last) {
-        // If the character doesn't exist in the font
-        GFXglyph* glyph = &display->font->glyph[3];  // Arbitrary character (#)
-        uint8_t width = glyph->width;
-        uint8_t height = glyph->height;
-        SSD1306_draw_rect(display, display->cursor_x, display->cursor_y,
-                          width, -height);
-        display->cursor_x += glyph->x_advance;
-    }
-    // Draw the valid character
-    else {
-        // Dereference necessary values
-        uint8_t* bmp = display->font->bitmap;
-        uint8_t scale = display->font_scale;
-        GFXglyph* glyph = &display->font->glyph[c - display->font->first];
-        uint16_t bmp_offset = glyph->bitmap_offset;
-        uint8_t height = glyph->height;
-        uint8_t width = glyph->width;
-        int8_t x_offset = glyph->x_offset;
-        int8_t y_offset = glyph->y_offset;
 
-        // Draw the character (with scale in mind)
-        uint8_t mask = 0x80;
-        for (uint8_t h = 0; h < height; h++) {
-            for (uint8_t w = 0; w < width; w++) {
-                if (bmp[bmp_offset] & mask) {
-                    int16_t x0 = display->cursor_x + x_offset + (w * scale);
-                    int16_t y0 = display->cursor_y + y_offset + (h * scale);
-                    SSD1306_draw_rect_fill(display, x0, y0, scale, scale);
-                }
-                if (mask == 1) {
-                    mask = 0x80;
-                    bmp_offset++;
-                }
-                else {
-                    mask >>= 1;
-                }
+    // Handle "line feed" seperately
+    if (c == '\n') {
+        display->cursor_y += (display->font->y_advance * display->font_scale);
+        return;
+    }
+
+    // Handle "carriage return" seperately
+    if (c == '\r') {
+        display->cursor_x = display->cursor_x0;
+        return;
+    }
+
+    // Draw the invalid character as '?'
+    if (c < display->font->first || c > display->font->last) {
+        c = '?';
+    }
+
+    // Dereference necessary values
+    uint8_t* bmp = display->font->bitmap;
+    uint8_t scale = display->font_scale;
+    GFXglyph* glyph = &display->font->glyph[c - display->font->first];
+    uint16_t bmp_offset = glyph->bitmap_offset;
+    uint8_t height = glyph->height;
+    uint8_t width = glyph->width;
+    int8_t x_offset = glyph->x_offset;
+    int8_t y_offset = glyph->y_offset;
+
+    // Draw the character (with scale in mind)
+    uint8_t mask = 0x80;
+    for (uint8_t h = 0; h < height; h++) {
+        for (uint8_t w = 0; w < width; w++) {
+            if (bmp[bmp_offset] & mask) {
+                int16_t x0 = display->cursor_x + x_offset + (w * scale);
+                int16_t y0 = display->cursor_y + y_offset + (h * scale);
+                SSD1306_draw_rect_fill(display, x0, y0, scale, scale);
+            }
+            if (mask == 1) {
+                mask = 0x80;
+                bmp_offset++;
+            }
+            else {
+                mask >>= 1;
             }
         }
-
-        // Advance the cursor
-        display->cursor_x += (glyph->x_advance * scale);
     }
+    display->cursor_x += (glyph->x_advance * scale);
 }
 
 void SSD1306_draw_str(SSD1306_T* display, const char* str) {
