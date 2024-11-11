@@ -630,3 +630,43 @@ void SSD1306_draw_line_h(SSD1306_T* display, int16_t x0, int16_t y0,
         x0 += xi;
     }
 }
+
+/**
+ * @brief Draws a vertical line starting from the specified coordinates and
+ * extending to the specified length.
+ * 
+ * Note:
+ * 
+ * - Clears the pixel instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of the starting point.
+ * @param y0 y-coordinate of the starting point.
+ * @param height Height of the line. A positive value extends the line upward, 
+ * while a negative value extends it downward.
+ */
+void SSD1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
+                         int16_t height) {
+    int16_t yi;
+    
+    // Change direction if height is negative
+    if (height < 0) {
+        height = -height;
+        yi = -1;
+    }
+    else {
+        yi = 1;
+    }
+    
+    // Draw the line
+    for (; height > 0; height--) {
+        SSD1306_draw_pixel(display, x0, y0);
+        y0 += yi;
+    }
+}
