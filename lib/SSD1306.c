@@ -1419,7 +1419,21 @@ void SSD1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * 
  * Notes:
  * 
- * - If the buffer is in 'clear' mode, the inverse of the image will be drawn.
+ * - The only supported bitmap format is XMB. You can convert your images to
+ * XBM by using a free tool such as "GIMP" or by using a website (search for
+ * "Image to XBM converter"). Make sure to change the array so its specifiers
+ * are "const uint8_t..." so the array stays in flash memory and you don't
+ * get any compiler warnings.
+ * 
+ * - Most XBM converters use a brightness threshold of 50% when converting
+ * images to binary. This doesn't always result in the best-looking image. 
+ * There are websites that allow you to set the threshold manually, such as
+ * https://javl.github.io/image2cpp/. Don't forget to tick
+ * "Invert image colors" and "Swap bits in byte" to match the XBM format.
+ * 
+ * - Since XBM images are inverted by default, this function draws the inverse 
+ * of the images to match the original. Setting the buffer mode to 'clear' will
+ * result in drawing the inverse of the ORIGINAL image.
  * 
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
@@ -1438,25 +1452,25 @@ void SSD1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * height, or the drawing may get corrupted and random parts of the memory may
  * be accessed. For example, for an image with a resolution of "60x40", the
  * height value should be '40'.
- * @param bmp Pointer to a bitmap. The array format should be 1-bit per pixel, 
- * so each byte represents 8 pixels. The least significant bit (LSB) of each
- * byte should represent the value of the top pixel. Every byte should represent
- * 1-column and 8-rows; meaning, 'bmp[width + 1]' should contain the start of
- * the next 8-rows of the image.
+ * @param bmp Pointer to an XBM array.
  * @param has_bg 'true' to overwrite the contents in the background; 'false' to
- * keep the transparency.
+ * draw transparent.
  */
 void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
                          const uint8_t* bmp, uint16_t width, uint16_t height,
                          bool has_bg) {
-    uint8_t mask = 1;
-    int16_t w_offset = 0;
-
-    // Iterate for each width for each height
+    uint8_t pixels;
+    int16_t bmp_offset = 0;
     for (int16_t h = 0; h < height; h++) {
-        // Draw the entire row
         for (int16_t w = 0; w < width; w++) {
-            if (bmp[w_offset + w] & mask) {
+            // Read the next byte every 8 pixels
+            if (!((uint8_t)w & 7)) {
+                pixels = bmp[bmp_offset];
+                bmp_offset++;
+            }
+
+            // Draw the pixel (XBM images are inverted)
+            if (!(pixels & 1)) {
                 SSD1306_draw_pixel(display, x0 + w, y0 + h);
             }
             else if (has_bg) {
@@ -1464,15 +1478,7 @@ void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
                 SSD1306_draw_pixel(display, x0 + w, y0 + h);
                 display->buffer_mode ^= 1;
             }
-        }
-
-        // Rotate the mask
-        if (mask == 0x80) {
-            mask = 1;
-            w_offset += width;
-        }
-        else {
-            mask <<= 1;
+            pixels >>= 1;
         }
     }
 }
