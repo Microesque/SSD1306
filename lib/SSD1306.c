@@ -1015,3 +1015,93 @@ void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
         SSD1306_draw_line_h(display, x0, y0 + height, width);
     }
 }
+
+/**
+ * @brief Draws quadrant arcs with the specified radius, centered at the
+ * specified coordinates.
+ * 
+ * Note:
+ * 
+ * - Clears the pixels instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of the arc center.
+ * @param y0 y-coordinate of the arc center.
+ * @param r Radius of the arc in pixels. Negative values are ignored.
+ * @param quadrant A 4-bit value where each bit represents a quadrant. Values
+ * bigger than 4-bits are ignored. The most significant bit (MSB) represents
+ * quadrant-4, while the least significant bit (LSB) represents quadrant-1. Set
+ * the corresponding bits to enable drawing for those quadrants. For example,
+ * "0b0110" enables drawing for quadrants 2 and 3.
+ */
+void SSD1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
+                      uint8_t quadrant) {
+    // Radius can't be negative, skip invalid quadrants
+    if (r < 0) {return;}
+    if (quadrant > 0b1111) {return;}
+    
+    // Draw the 4 way corner pixels
+    if (quadrant & 0b1100) {
+        SSD1306_draw_pixel(display, x0, y0 + r);
+    }
+    if (quadrant & 0b0011) {
+        SSD1306_draw_pixel(display, x0, y0 - r);
+    }
+    if (quadrant & 0b1001) {
+        SSD1306_draw_pixel(display, x0 + r, y0);
+    }
+    if (quadrant & 0b0110) {
+        SSD1306_draw_pixel(display, x0 - r, y0);
+    }
+
+    int16_t f_middle, delta_e, delta_se, x, y;
+    int16_t diff_1, diff_2;
+    
+    // Initialize the middle point and delta values, start from (0, r)
+    f_middle = 1 - r;  // Simplified from "5/4-r"
+    delta_e = 3;
+    delta_se = -(r + r) + 5;
+    x = 0;
+    y = r;
+    
+    // Iterate from the top of the circle to the x=y line
+    while (x < y) {
+        if (f_middle < 0) {
+            f_middle += delta_e;
+            delta_se += 2;
+        }
+        else {
+            f_middle += delta_se;
+            delta_se += 4;
+            y--;
+        }
+        delta_e += 2;
+        x++;
+        
+        // Draw the arcs using 8-way symmetry
+        diff_1 =  y - x + 1;
+        diff_2 = -y + x - 1;
+        if (quadrant & 0b0001) {
+            SSD1306_draw_pixel(display, (x0 + x), (y0 - y));
+            SSD1306_draw_pixel(display, (x0 + y), (y0 - x));
+        }
+        if (quadrant & 0b0010) {
+            SSD1306_draw_pixel(display, (x0 - x), (y0 - y));
+            SSD1306_draw_pixel(display, (x0 - y), (y0 - x));
+        }
+        if (quadrant & 0b0100) {
+            SSD1306_draw_pixel(display, (x0 - x), (y0 + y));
+            SSD1306_draw_pixel(display, (x0 - y), (y0 + x));
+        }
+        if (quadrant & 0b1000) {
+            SSD1306_draw_pixel(display, (x0 + x), (y0 + y));
+            SSD1306_draw_pixel(display, (x0 + y), (y0 + x));
+        }
+    }
+}
