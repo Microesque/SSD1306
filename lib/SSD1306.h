@@ -208,7 +208,7 @@
     Default font, 'NULL' means no font [NULL, &<GFXfont>].
 
     To set up a default font, include the header file of your font above the
-    macro, then put the 'GFXfont' variable address as the value.
+    macro, then set the value to the address of the 'GFXfont' variable.
 
     Ex:
         #include "../fonts/RandomFont.h"

@@ -107,9 +107,9 @@ static const uint16_t SSD1306_PAGE_OFFSETS[] = {
  * 
  * Notes:
  * 
- * - If you want to re-initialize the display, use 'SSD1306_reinit()' instead.
- * It does the same thing without having to re-initialize the structure and 
- * extra arguments.
+ * - If you already called 'SSD1306_init()' at least once, and want to
+ * re-initialize the display, use 'SSD1306_reinit()' instead. It does the same
+ * thing without re-initializing the structure.
  * 
  * - The display will revert to its default configurations. You can change
  * these configurations individually in the header file.
@@ -274,7 +274,8 @@ void SSD1306_reinit(SSD1306_T* display) {
 
     /*
     Initialize the defaults in case they were changed.
-    'SSD1306_display_mirror_h()' updates the screen, so no separate call needed.
+    'SSD1306_display_mirror_h()' updates the display, so no separate call
+    needed.
      */
     #if SSD1306_DEFAULT_CLEAR_BUFFER == true
         SSD1306_draw_clear(display);
@@ -419,21 +420,18 @@ void SSD1306_display_mirror_v(SSD1306_T* display, bool is_enabled) {
 /**
  * @brief Starts up a continuous horizontal or diagonal scroll.
  * 
- * Below are all due to the limitations of the driver chip itself:
+ * Notes (limitations of the driver chip):
+ * 
+ * - Automatically updates the display. Any subsequent updates to the display
+ * while a scrolling is in progress will cause the contents of the display to
+ * be corrupted. Call 'SSD1306_display_scroll_disable()' before updating the
+ * display again.
  * 
  * - Vertical scrolling by itself is not available.
  * 
  * - Diagonal scroll won't work with "128x64" displays.
  * 
- * - Vertical aspect of the diagonal scroll will always be upwards.
- * 
- * - Any previous scroll setup will be overwritten, and the scroll will start
- * from the original location.
- * 
- * - Automatically updates the screen with the current buffer values.
- * 
- * - Any updates to the display while there's an ongoing scroll will restart the
- * scrolling.
+ * - The vertical aspect of the diagonal scroll will always be upwards.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param is_left 'true' to scroll left; 'false' to scroll right.
@@ -505,8 +503,13 @@ void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_left,
 }
 
 /**
- * @brief Stops an ongoing scroll. You can start a scroll by calling
- * 'SSD1306_display_scroll_enable()'.
+ * @brief Stops an ongoing scroll.
+ * 
+ * Notes:
+ * 
+ * - Automatically updates the display.
+ * 
+ * - You can start a scroll by calling 'SSD1306_display_scroll_enable()'.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  */
@@ -538,8 +541,8 @@ void SSD1306_display_scroll_disable(SSD1306_T* display) {
  * 
  * - Ignores buffer mode (draw/clear).
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  */
@@ -563,8 +566,8 @@ void SSD1306_draw_clear(SSD1306_T* display) {
  * 
  * - Ignores buffer mode (draw/clear).
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  */
@@ -591,8 +594,8 @@ void SSD1306_draw_fill(SSD1306_T* display) {
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x x coordinate of the pixel. Any value out of bounds will be clipped.
@@ -637,8 +640,8 @@ void SSD1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y) {
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the starting point.
@@ -677,8 +680,8 @@ void SSD1306_draw_line_h(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the starting point.
@@ -716,8 +719,8 @@ void SSD1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the starting point.
@@ -727,7 +730,7 @@ void SSD1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
  */
 void SSD1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0, int16_t x1,
                        int16_t y1) {
-    // Handle the straight line cases seperately
+    // Handle the straight line cases separately
     if (x0 == x1) {
         SSD1306_draw_pixel(display, x1, y1);
         SSD1306_draw_line_v(display, x0, y0, y1 - y0);
@@ -810,8 +813,8 @@ void SSD1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0, int16_t x1,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of point-0.
@@ -838,8 +841,8 @@ void SSD1306_draw_triangle(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of point-0.
@@ -974,8 +977,8 @@ void SSD1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the starting point.
@@ -1018,8 +1021,8 @@ void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the starting point.
@@ -1062,8 +1065,8 @@ void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the starting point.
@@ -1132,8 +1135,8 @@ void SSD1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the starting point.
@@ -1211,8 +1214,8 @@ void SSD1306_draw_rect_round_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the arc center.
@@ -1300,8 +1303,8 @@ void SSD1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the arc center.
@@ -1389,8 +1392,8 @@ void SSD1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the circle center.
@@ -1414,8 +1417,8 @@ void SSD1306_draw_circle(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the circle center.
@@ -1452,8 +1455,8 @@ void SSD1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param x0 x-coordinate of the starting point.
@@ -1520,8 +1523,8 @@ void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param c Character to be drawn.
@@ -1532,13 +1535,13 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
         return;
     }
 
-    // Handle "line feed" seperately
+    // Handle "line feed" separately
     if (c == '\n') {
         display->cursor_y += (display->font->y_advance * display->font_scale);
         c = '\r';
     }
 
-    // Handle "carriage return" seperately
+    // Handle "carriage return" separately
     if (c == '\r') {
         display->cursor_x = display->cursor_x0;
         return;
@@ -1607,8 +1610,8 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param c Pointer to an 'SSD1306_CustomChar' structure.
@@ -1677,8 +1680,8 @@ void SSD1306_draw_char_custom(SSD1306_T* display, const SSD1306_CustomChar* c) {
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param str String to be drawn.
@@ -1709,8 +1712,8 @@ void SSD1306_draw_str(SSD1306_T* display, const char* str) {
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param num 32-bit number to be drawn.
@@ -1766,8 +1769,8 @@ void SSD1306_draw_int32(SSD1306_T* display, int32_t num) {
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param num Float point number to be drawn.
@@ -1825,8 +1828,8 @@ void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
  * - You can draw off-screen, but everything that's out of bounds will be
  * clipped.
  * 
- * - Draw functions don't update the screen. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param format Format string.
