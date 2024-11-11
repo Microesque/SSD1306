@@ -128,5 +128,7 @@
                                     int16_t y2);
     void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
                            int16_t width, int16_t height);
+    void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+                                int16_t width, int16_t height);
 
 #endif
