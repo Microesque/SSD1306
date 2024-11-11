@@ -1574,6 +1574,70 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
 }
 
 /**
+ * @brief Draws a custom character at the current cursor position.
+ * 
+ * Notes:
+ * 
+ * - To create a custom character, follow the documentation in the library
+ * GitHub page https://github.com/Microesque/SSD1306_Library .
+ * 
+ * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
+ * 
+ * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
+ * scaled by default).
+ * 
+ * - Draws the character even the display isn't setup with a font.
+ * 
+ * - Clears the pixels instead if the buffer is in 'clear' mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @param c Pointer to an 'SSD1306_CustomChar' structure.
+ */
+void SSD1306_draw_char_custom(SSD1306_T* display, const SSD1306_CustomChar* c) {
+    // Dereference necessary values
+    uint8_t* bmp = c->bitmap;
+    uint8_t scale = display->font_scale;
+    uint16_t bmp_offset = 0;
+    uint8_t height = c->height;
+    uint8_t width = c->width;
+    int8_t x_offset = c->x_offset;
+    int8_t y_offset = c->y_offset;
+
+    // Draw the character (with scale in mind)
+    uint8_t pixels;
+    uint8_t count = 8;
+    for (uint8_t h = 0; h < height; h++) {
+        for (uint8_t w = 0; w < width; w++) {
+            // Read the next byte every 8 pixels
+            if (count == 8) {
+                count = 0;
+                pixels = bmp[bmp_offset];
+                bmp_offset++;
+            }
+
+            // Draw the next pixel
+            if (pixels & 0x80) {
+                SSD1306_draw_rect_fill(
+                                    display,
+                                    display->cursor_x + x_offset + (w * scale),
+                                    display->cursor_y + y_offset + (h * scale),
+                                    scale,
+                                    scale);
+            }
+            pixels <<= 1;
+            count++;
+        }
+    }
+    display->cursor_x += (c->x_advance * scale);
+}
+
+/**
  * @brief Draws a string at the current cursor position.
  * 
  * Notes:

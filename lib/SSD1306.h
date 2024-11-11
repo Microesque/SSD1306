@@ -119,6 +119,18 @@
         uint16_t last;
         uint8_t y_advance;
     } GFXfont;
+    
+    /*
+    Custom character structure.
+    */
+    typedef struct {
+        uint8_t* bitmap;
+        uint8_t width;
+        uint8_t height;
+        uint8_t x_advance;
+        int8_t x_offset;
+        int8_t y_offset;
+    } SSD1306_CustomChar;
 
     /*
     Structure that represents your displays. Initialize with "SSD1306_init()".
@@ -198,6 +210,8 @@
                              const uint8_t* bmp, uint16_t width,
                              uint16_t height, bool has_bg);
     void SSD1306_draw_char(SSD1306_T* display, char c);
+    void SSD1306_draw_char_custom(SSD1306_T* display,
+                                  const SSD1306_CustomChar* c);
     void SSD1306_draw_str(SSD1306_T* display, const char* str);
     void SSD1306_draw_int32(SSD1306_T* display, int32_t num);
     void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits);
