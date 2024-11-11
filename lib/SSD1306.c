@@ -624,10 +624,10 @@ void SSD1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y) {
     
     // Change the pixel according to the current buffer mode
     if (display->buffer_mode) {
-        display->buffer[index] = display->buffer[index] | mask;
+        display->buffer[index] |= mask;
     }
     else {
-        display->buffer[index] = display->buffer[index] & ~mask;
+        display->buffer[index] &= ~mask;
     }
 }
 
