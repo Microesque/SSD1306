@@ -1042,6 +1042,76 @@ void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
 }
 
 /**
+ * @brief Draws a rectangle with round corners starting from the specified
+ * coordinates and extending to the specified lengths.
+ * 
+ * Note:
+ * 
+ * - Clears the pixels instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x0 x-coordinate of the starting point.
+ * @param y0 y-coordinate of the starting point.
+ * @param width Width of the rectangle. A positive value extends the rectangle
+ * to the right, while a negative value extends it to the left.
+ * @param height Height of the rectangle. A positive value extends the rectangle
+ * upward, while a negative value extends it downward.
+ * @param r Radius of the corner arcs. If the given radius is too large, it will
+ * be limited to the maximum radius possible. Passing zero or a negative value
+ * will result in a normal rectangle.
+ */
+void SSD1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
+                             int16_t width, int16_t height, int16_t r) {
+    // Width and height can't be 0
+    if (width == 0 || height == 0) {return;}
+    
+    // Shift the rectangle if width or height is negative
+    if (width < 0) {
+        width = -width;
+        x0 -= (width-1);
+    }
+    if (height < 0) {
+        height = -height;
+        y0 -= (height-1);
+    }
+    
+    // Limit the r
+    int16_t r_max;
+    if (width < height) {
+        r_max = (int16_t)((uint16_t)width >> 1); // w/2 (in case not optimized)
+    }
+    else {
+        r_max = (int16_t)((uint16_t)height >> 1); // h/2 (in case not optimized)
+    }
+    if (r < 0) {
+        r = 0;
+    }
+    else if (r > r_max) {
+        r = r_max;
+    }
+    
+    // Draw the rectangle edges
+    int16_t width_h = width - r - r;
+    int16_t height_v = height - r - r;
+    SSD1306_draw_arc(display, x0 + width - r - 1, y0 + r, r, 0x01);
+    SSD1306_draw_arc(display, x0 + r, y0 + r, r, 0x2);
+    SSD1306_draw_arc(display, x0 + r, y0 + height - r - 1, r, 0x4);
+    SSD1306_draw_arc(display, x0 + width - r - 1, y0 + height - r - 1, r, 0x8);
+    
+    // Draw the rectangle lines
+    SSD1306_draw_line_h(display, x0 + r, y0, width_h);
+    SSD1306_draw_line_h(display, x0 + r, y0 + height - 1, width_h);
+    SSD1306_draw_line_v(display, x0, y0 + r, height_v);
+    SSD1306_draw_line_v(display, x0 + width - 1, y0 + r, height_v);
+}
+
+/**
  * @brief Draws quadrant arcs with the specified radius, centered at the
  * specified coordinates.
  * 
