@@ -166,7 +166,7 @@ void SSD1306_init(SSD1306_T* display,
  * @param length Number of bytes from the data array to send.
  */
 static void SSD1306_write(SSD1306_T* display, SSD1306_WRITE_MODE write_mode,
-                          uint8_t* data, uint16_t length) {
+                          const uint8_t* data, uint16_t length) {
     display->I2C_start();
     display->I2C_write((uint8_t)(display->I2C_address << 1));
     if (write_mode) {
@@ -1414,7 +1414,7 @@ void SSD1306_draw_circle(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param r Radius of the arc in pixels. Negative values are ignored.
  */
 void SSD1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
-                         int16_t r) {
+                              int16_t r) {
     SSD1306_draw_arc_fill(display, x0, y0, r, 0b1111);
 }
 

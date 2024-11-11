@@ -120,13 +120,13 @@
     Structure that represents your displays. Initialize with "SSD1306_init()".
      */
     typedef struct {
-        uint8_t* buffer;
-        SSD1306_DisplayType display_type;
         uint8_t I2C_address;
         void (*I2C_start)(void);
         uint8_t (*I2C_write)(uint8_t);
         void (*I2C_stop)(void);
+        uint8_t* buffer;
         SSD1306_BufferMode buffer_mode;
+        SSD1306_DisplayType display_type;
         const GFXfont* font;
         uint8_t font_scale;
         int16_t cursor_x0;
