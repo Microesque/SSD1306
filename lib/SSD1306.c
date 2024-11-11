@@ -1564,6 +1564,33 @@ void SSD1306_draw_str(SSD1306_T* display, const char* str) {
     }
 }
 
+void SSD1306_draw_int32(SSD1306_T* display, int32_t num) {
+    // if the number is 0
+    if (num == 0) {
+        SSD1306_draw_char(display, '0');
+        return;
+    }
+
+    // If the number is negative
+    if (num < 0) {
+        SSD1306_draw_char(display, '-');
+        num = -num;
+    }
+
+    // Draw the number
+    char digits[10];
+    uint8_t i = 0;
+    while (num > 0) {
+        digits[i] = num % 10;
+        num /= 10;
+        i++;
+    }
+    while (i > 0) {
+        i--;
+        SSD1306_draw_char(display, '0' + digits[i]);
+    }
+}
+
 void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
     char str[SD1306_PRINTF_MAX_CHAR];
     va_list args;
