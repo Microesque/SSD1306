@@ -206,5 +206,6 @@
     void SSD1306_set_font(SSD1306_T* display, const GFXfont* font);
     void SSD1306_set_font_scale(SSD1306_T* display, uint8_t scale);
     void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);
+    void SSD1306_set_tab_interval(SSD1306_T* display, uint8_t interval);
 
 #endif
