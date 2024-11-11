@@ -1591,6 +1591,33 @@ void SSD1306_draw_int32(SSD1306_T* display, int32_t num) {
     }
 }
 
+void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
+    // If the number is negative
+    if (num < 0.0f) {
+        SSD1306_draw_char(display, '-');
+        num = -num;
+    }
+
+    // Draw the integer part
+    int32_t num_int = (int32_t)num;
+    SSD1306_draw_int32(display, num_int);
+    SSD1306_draw_char(display, '.');
+
+    // Draw the fractional part
+    num -= num_int;
+    for (; digits > 0; digits--) {
+        num *= 10;
+        uint8_t d = (uint8_t)num;
+        num -= d;
+        if (d == 0) {
+            SSD1306_draw_char(display, '0');
+        }
+        else {
+            SSD1306_draw_char(display, ('0' + d));
+        }
+    }
+}
+
 void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
     char str[SD1306_PRINTF_MAX_CHAR];
     va_list args;

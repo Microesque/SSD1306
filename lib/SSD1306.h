@@ -199,6 +199,7 @@
     void SSD1306_draw_char(SSD1306_T* display, char c);
     void SSD1306_draw_str(SSD1306_T* display, const char* str);
     void SSD1306_draw_int32(SSD1306_T* display, int32_t num);
+    void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits);
     void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...);
 
     void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);
