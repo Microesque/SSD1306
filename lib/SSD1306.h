@@ -40,8 +40,11 @@
     /*------------------------------------------------------------------------*/
 
     /*
-    Maximum number of characters that "SSD1306_draw_printf()" function can
-    display at a time. This includes the null termination.
+    Maximum number of characters that 'SSD1306_draw_printf()' can display at a
+    time, including the null termination.
+    
+    "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of RAM will be reserved
+    (total, not per display), but only if you use 'SSD1306_draw_printf()'.
     */
     #define SD1306_PRINTF_CHAR_LIMIT 255
     
@@ -89,12 +92,13 @@
     #define SSD1306_ARC_QUAD3  0x4  // Mask to enable quadrant-3
     #define SSD1306_ARC_QUAD4  0x8  // Mask to enable quadrant-4
 
+
     /*------------------------------------------------------------------------*/
     /*------------------------------ Structures ------------------------------*/
     /*------------------------------------------------------------------------*/
     
     /*
-    Adafruit GFX Glyph structure.
+    Adafruit-GFX glyph structure.
     */
     typedef struct {
         uint16_t bitmap_offset;
@@ -106,7 +110,7 @@
     } GFXglyph;
 
     /*
-    Adafruit GFX Font structure.
+    Adafruit-GFX font structure.
     */
     typedef struct {
         uint8_t* bitmap;

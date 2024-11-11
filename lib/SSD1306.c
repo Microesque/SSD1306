@@ -1722,6 +1722,9 @@ void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
  * 
  * Notes:
  * 
+ * - Maximum 255 characters including the null termination. Changable through
+ * the 'SD1306_PRINTF_CHAR_LIMIT' macro in the header file.
+ * 
  * - For lower memory alternatives, consider using 'SSD1306_draw_str()',
  * 'SSD1306_draw_int32()', and 'SSD1306_draw_float()' instead.
  * 
