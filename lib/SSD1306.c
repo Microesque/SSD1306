@@ -1596,12 +1596,7 @@ void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
         num *= 10;
         uint8_t d = (uint8_t)num;
         num -= d;
-        if (d == 0) {
-            SSD1306_draw_char(display, '0');
-        }
-        else {
-            SSD1306_draw_char(display, ('0' + d));
-        }
+        SSD1306_draw_char(display, ('0' + d));
     }
 }
 
