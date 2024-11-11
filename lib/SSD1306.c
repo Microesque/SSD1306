@@ -99,6 +99,67 @@ static const uint16_t SSD1306_PAGE_OFFSETS[] = {
 
 
 /*----------------------------------------------------------------------------*/
+/*----------------------------- Helpers Functions ----------------------------*/
+/*----------------------------------------------------------------------------*/
+
+/**
+ * @brief Does the actual character drawing part. Uses the GFX font format to
+ * draw.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @param bmp_start Pointer to the starting address of the bitmap array.
+ * @param width Width of the character.
+ * @param height Height of the character.
+ * @param x_offset x-offset of the character.
+ * @param y_offset y-offset of the character.
+ * @param x_advance x-advence of the character.
+ */
+static void H_draw_char(SSD1306_T* display, const uint8_t* bmp_start,
+                                            uint8_t width,
+                                            uint8_t height,
+                                            int8_t x_offset,
+                                            int8_t y_offset,
+                                            uint8_t x_advance) {
+    // Draw the character (with scale in mind)
+    uint8_t scale = display->font_scale;
+    uint8_t pixels;
+    uint8_t count = 8;
+    uint8_t bmp_offset = 0;
+    for (uint8_t h = 0; h < height; h++) {
+        for (uint8_t w = 0; w < width; w++) {
+            // Read the next byte every 8 pixels
+            if (count == 8) {
+                count = 0;
+                pixels = bmp_start[bmp_offset];
+                bmp_offset++;
+            }
+
+            // Draw the next pixel
+            if (pixels & 0x80) {
+                SSD1306_draw_rect_fill(
+                                    display,
+                                    display->cursor_x + x_offset + (w * scale),
+                                    display->cursor_y + y_offset + (h * scale),
+                                    scale,
+                                    scale);
+            }
+            pixels <<= 1;
+            count++;
+        }
+    }
+    display->cursor_x += (x_advance * scale);
+}
+
+
+
+
+
+
+
+
+
+
+/*----------------------------------------------------------------------------*/
 /*-------------------------- Communication Functions -------------------------*/
 /*----------------------------------------------------------------------------*/
 
@@ -1539,42 +1600,15 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
         c = '?';
     }
 
-    // Dereference necessary values
-    uint8_t* bmp = display->font->bitmap;
-    uint8_t scale = display->font_scale;
+    // Draw the character
     GFXglyph* glyph = &display->font->glyph[c - display->font->first];
-    uint16_t bmp_offset = glyph->bitmap_offset;
-    uint8_t height = glyph->height;
-    uint8_t width = glyph->width;
-    int8_t x_offset = glyph->x_offset;
-    int8_t y_offset = glyph->y_offset;
-
-    // Draw the character (with scale in mind)
-    uint8_t pixels;
-    uint8_t count = 8;
-    for (uint8_t h = 0; h < height; h++) {
-        for (uint8_t w = 0; w < width; w++) {
-            // Read the next byte every 8 pixels
-            if (count == 8) {
-                count = 0;
-                pixels = bmp[bmp_offset];
-                bmp_offset++;
-            }
-
-            // Draw the next pixel
-            if (pixels & 0x80) {
-                SSD1306_draw_rect_fill(
-                                    display,
-                                    display->cursor_x + x_offset + (w * scale),
-                                    display->cursor_y + y_offset + (h * scale),
-                                    scale,
-                                    scale);
-            }
-            pixels <<= 1;
-            count++;
-        }
-    }
-    display->cursor_x += (glyph->x_advance * scale);
+    H_draw_char(display,
+                &display->font->bitmap[glyph->bitmap_offset],
+                glyph->width,
+                glyph->height,
+                glyph->x_offset,
+                glyph->y_offset,
+                glyph->x_advance);
 }
 
 /**
@@ -1604,41 +1638,13 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
  * @param c Pointer to an 'SSD1306_CustomChar' structure.
  */
 void SSD1306_draw_char_custom(SSD1306_T* display, const SSD1306_CustomChar* c) {
-    // Dereference necessary values
-    uint8_t* bmp = c->bitmap;
-    uint8_t scale = display->font_scale;
-    uint16_t bmp_offset = 0;
-    uint8_t height = c->height;
-    uint8_t width = c->width;
-    int8_t x_offset = c->x_offset;
-    int8_t y_offset = c->y_offset;
-
-    // Draw the character (with scale in mind)
-    uint8_t pixels;
-    uint8_t count = 8;
-    for (uint8_t h = 0; h < height; h++) {
-        for (uint8_t w = 0; w < width; w++) {
-            // Read the next byte every 8 pixels
-            if (count == 8) {
-                count = 0;
-                pixels = bmp[bmp_offset];
-                bmp_offset++;
-            }
-
-            // Draw the next pixel
-            if (pixels & 0x80) {
-                SSD1306_draw_rect_fill(
-                                    display,
-                                    display->cursor_x + x_offset + (w * scale),
-                                    display->cursor_y + y_offset + (h * scale),
-                                    scale,
-                                    scale);
-            }
-            pixels <<= 1;
-            count++;
-        }
-    }
-    display->cursor_x += (c->x_advance * scale);
+    H_draw_char(display,
+                c->bitmap,
+                c->width,
+                c->height,
+                c->x_offset,
+                c->y_offset,
+                c->x_advance);
 }
 
 /**
