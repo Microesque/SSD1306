@@ -1565,7 +1565,7 @@ void SSD1306_draw_int32(SSD1306_T* display, int32_t num) {
     }
 
     // Draw the number
-    char digits[10];
+    uint8_t digits[10];
     uint8_t i = 0;
     while (num > 0) {
         digits[i] = num % 10;
@@ -1574,7 +1574,7 @@ void SSD1306_draw_int32(SSD1306_T* display, int32_t num) {
     }
     while (i > 0) {
         i--;
-        SSD1306_draw_char(display, '0' + digits[i]);
+        SSD1306_draw_char(display, ('0' + digits[i]));
     }
 }
 
