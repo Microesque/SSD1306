@@ -1750,7 +1750,7 @@ void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
  * @param ... Arguments for the format string.
  */
 void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
-    char str[SD1306_PRINTF_MAX_CHAR];
+    char str[SD1306_PRINTF_CHAR_LIMIT];
     va_list args;
     va_start(args, format);
     vsnprintf(str, sizeof(str), format, args);

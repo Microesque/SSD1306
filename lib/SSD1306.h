@@ -45,7 +45,7 @@
     Maximum number of characters that "SSD1306_draw_printf()" function can
     display at a time. This includes the null termination.
     */
-    #define SD1306_PRINTF_MAX_CHAR 255
+    #define SD1306_PRINTF_CHAR_LIMIT 255
     
 
     /*------------------------------------------------------------------------*/
