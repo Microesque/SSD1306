@@ -732,18 +732,6 @@ void SSD1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
  */
 void SSD1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0, int16_t x1,
                        int16_t y1) {
-    // Handle the straight line cases separately
-    if (x0 == x1) {
-        SSD1306_draw_pixel(display, x1, y1);
-        SSD1306_draw_line_v(display, x0, y0, y1 - y0);
-        return;
-    }
-    if (y0 == y1) {
-        SSD1306_draw_pixel(display, x1, y1);
-        SSD1306_draw_line_h(display, x0, y0, x1 - x0);
-        return;
-    }
-    
     int16_t dx, dy, D, yi, temp;
     uint8_t is_swapped;
     
