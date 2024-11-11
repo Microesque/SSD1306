@@ -1491,6 +1491,35 @@ void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
     }
 }
 
+/**
+ * @brief Draws a character at the current cursor position.
+ * 
+ * Note:
+ * 
+ * - Cursor position can be set by calling "SSD1306_set_cursor()".
+ * 
+ * - Font characters can be scaled by calling "SSD1306_set_font_scale()" (not
+ * scaled by default).
+ * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling "SSD1306_set_font()".
+ * 
+ * - If the current font doesn't support the character, it'll be drawn as a '?'.
+ * 
+ * - '\\n' and '\\r' are the only special characters supported outside of the
+ * valid font characters.
+ * 
+ * - Clears the pixels instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param c Character to be drawn.
+ */
 void SSD1306_draw_char(SSD1306_T* display, char c) {
     // If there is no font
     if (display->font == NULL) {
@@ -1545,12 +1574,69 @@ void SSD1306_draw_char(SSD1306_T* display, char c) {
     display->cursor_x += (glyph->x_advance * scale);
 }
 
+/**
+ * @brief Draws a string at the current cursor position.
+ * 
+ * Note:
+ * 
+ * - Expects the string to be null-terminated!
+ * 
+ * - Cursor position can be set by calling "SSD1306_set_cursor()".
+ * 
+ * - Font characters can be scaled by calling "SSD1306_set_font_scale()" (not
+ * scaled by default).
+ * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling "SSD1306_set_font()".
+ * 
+ * - If the current font doesn't support any characters, they'll be drawn as a
+ * '?'.
+ * 
+ * - '\\n' and '\\r' are the only special characters supported outside of the
+ * valid font characters.
+ * 
+ * - Clears the pixels instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param str String to be drawn.
+ */
 void SSD1306_draw_str(SSD1306_T* display, const char* str) {
     for (uint16_t i = 0; str[i] != '\0'; i++) {
         SSD1306_draw_char(display, str[i]);
     }
 }
 
+/**
+ * @brief Draws a 32-bit number at the current cursor position. Meant to be a
+ * low memory alternative for "SSD1306_draw_printf()".
+ * 
+ * Note:
+ * 
+ * - Cursor position can be set by calling "SSD1306_set_cursor()".
+ * 
+ * - Font characters can be scaled by calling "SSD1306_set_font_scale()" (not
+ * scaled by default).
+ * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling "SSD1306_set_font()".
+ * 
+ * - Clears the pixels instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param num 32-bit number to be drawn.
+ */
 void SSD1306_draw_int32(SSD1306_T* display, int32_t num) {
     // if the number is 0
     if (num == 0) {
@@ -1578,6 +1664,36 @@ void SSD1306_draw_int32(SSD1306_T* display, int32_t num) {
     }
 }
 
+/**
+ * @brief Draws a float point number at the current cursor position. Meant to be
+ * a low memory alternative for "SSD1306_draw_printf()".
+ * 
+ * Note:
+ * 
+ * - The integer part of the number must fit within a 'signed 32-bit' range, or
+ * the number will overflow! No such limit for the fractional part or the digit
+ * count.
+ * 
+ * - Cursor position can be set by calling "SSD1306_set_cursor()".
+ * 
+ * - Font characters can be scaled by calling "SSD1306_set_font_scale()" (not
+ * scaled by default).
+ * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling "SSD1306_set_font()".
+ * 
+ * - Clears the pixels instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param num Float point number to be drawn.
+ * @param digits Number of digits after the decimal point to be drawn.
+ */
 void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
     // If the number is negative
     if (num < 0.0f) {
@@ -1600,6 +1716,39 @@ void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
     }
 }
 
+/**
+ * @brief Draws a formatted string at the current cursor position. For lower
+ * memory alternatives, consider "SSD1306_draw_int32()" and
+ * "SSD1306_draw_float()" instead.
+ * 
+ * Note:
+ * 
+ * - Cursor position can be set by calling "SSD1306_set_cursor()".
+ * 
+ * - Font characters can be scaled by calling "SSD1306_set_font_scale()" (not
+ * scaled by default).
+ * 
+ * - Nothing will be drawn if the display isn't setup with a font. You can set
+ * a font by calling "SSD1306_set_font()".
+ * 
+ * - If the current font doesn't support any characters, they'll be drawn as a
+ * '?'.
+ * 
+ * - '\\n' and '\\r' are the only special characters supported outside of the
+ * valid font characters.
+ * 
+ * - Clears the pixels instead if the display is in "clear" mode.
+ * 
+ * - You can draw off-screen, but everything that's out of bounds will be
+ * clipped.
+ * 
+ * - Draw functions don't update the screen. Don't forget to call the
+ * "SSD1306_display_update()" to push the buffer onto the screen.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param format Format string.
+ * @param ... Arguments for the format string.
+ */
 void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
     char str[SD1306_PRINTF_MAX_CHAR];
     va_list args;
@@ -1609,14 +1758,42 @@ void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...) {
     SSD1306_draw_str(display, str);
 }
 
+/**
+ * @brief Assigns a font to the display. The font will be used for the
+ * subsequent characters drawn onto the display.
+ * 
+ * This library supports 'GFXfont' font types from the 'Adafruit-GFX-Library' on
+ * GitHub.
+ * 
+ * GitHub link: https://github.com/adafruit/Adafruit-GFX-Library/
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param font Font to be assigned to the display.
+ */
 void SSD1306_set_font(SSD1306_T* display, const GFXfont* font) {
     display->font = font;
 }
 
+/**
+ * @brief Configures font scaling for the display. The scaling will be used for
+ * the subsequent characters drawn onto the display.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param scale Number of times to magnify the font by.
+ */
 void SSD1306_set_font_scale(SSD1306_T* display, uint8_t scale) {
     display->font_scale = scale;
 }
 
+/**
+ * @brief Sets the cursor to the specified coordinates. The cursor location
+ * represents the starting point for the subsequent characters to be drawn onto
+ * the display.
+ * 
+ * @param display Pointer to an SSD1306_T structure.
+ * @param x x-coordinate of the cursor.
+ * @param y y-coordinate of the cursor.
+ */
 void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y) {
     display->cursor_x0 = x;
     display->cursor_x = x;
