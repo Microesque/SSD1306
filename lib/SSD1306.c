@@ -23,6 +23,12 @@
  */
 
 
+/*----------------------------------------------------------------------------*/
+/*---------------------------- Necessary Libraries ---------------------------*/
+/*----------------------------------------------------------------------------*/
+
+#include <stdarg.h>
+#include <stdio.h>
 #include "SSD1306.h"
 
 
@@ -1787,6 +1793,8 @@ void SSD1306_set_buffer_mode(SSD1306_T* display, SSD1306_BufferMode mode) {
  * on GitHub.
  * 
  * - GitHub link: https://github.com/adafruit/Adafruit-GFX-Library/
+ * 
+ * - Set to 'NULL' for no font.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param font Font to be assigned to the display.
