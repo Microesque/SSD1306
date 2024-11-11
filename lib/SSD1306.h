@@ -56,7 +56,7 @@
     } SSD1306_DisplayType;
 
     /*
-     * Buffer sizes needed for the respective display type.
+     * Buffer sizes needed for the respective display type (128x32 or 128x64).
      */
     #define SSD1306_BUFFER_SIZE_32 512 //
     #define SSD1306_BUFFER_SIZE_64 1024
