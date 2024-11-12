@@ -2211,3 +2211,29 @@ int16_t SSD1306_get_cursor(SSD1306_T* display, int16_t* x, int16_t* y) {
 uint8_t* SSD1306_get_buffer(SSD1306_T* display) {
     return display->buffer;
 }
+
+uint8_t SSD1306_get_buffer_pixel(SSD1306_T* display, int16_t x, int16_t y) {
+    // Return 0 if out of bounds
+    if (x < 0) {return 0;}
+    if (y < 0) {return 0;}
+    if (x > SSD1306_X_MAX) {return 0;}
+    if (display->display_type) {
+        if (y > SSD1306_Y_MAX_64) {return 0;}
+    }
+    else {
+        if (y > SSD1306_Y_MAX_32) {return 0;}
+    }
+    
+    uint16_t index;
+    uint8_t mask;
+
+    // Find the buffer index and its mask according to the given coordinates
+    index = SSD1306_PAGE_OFFSETS[y >> 3] + (uint16_t)x;
+    mask = (uint8_t)(1 << (y & 7));
+    
+    // Return the pixel
+    if (display->buffer[index] & mask) {
+        return 1;
+    }
+    return 0;
+}
