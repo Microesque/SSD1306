@@ -2182,36 +2182,121 @@ void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y) {
 /*---------------------------------- Getters ---------------------------------*/
 /*----------------------------------------------------------------------------*/
 
+/**
+ * @brief Returns the assigned I2C address of the display.
+ * 
+ * Notes:
+ * 
+ * - If the 'SSD1306_init()' was never called with the given structure, the
+ * return value will be random.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @return The assigned I2C address of the display.
+ */
 uint8_t SSD1306_get_display_address(SSD1306_T* display) {
     return display->I2C_address;
 }
 
+/**
+ * @brief Returns the assigned display type of the display ("128x32" or
+ * "128x64").
+ * 
+ * Notes:
+ * 
+ * - If the 'SSD1306_init()' was never called with the given structure, the
+ * return value will be random.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @return The assigned display type of the display ("128x32" or "128x64").
+ */
 SSD1306_DisplayType SSD1306_get_display_type(SSD1306_T* display) {
     return display->display_type;
 }
 
+/**
+ * @brief Returns the current buffer mode of the display (draw/clear).
+ * 
+ * Notes:
+ * 
+ * - Buffer mode can be set by calling 'SSD1306_set_buffer_mode()'.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @return The current buffer mode of the display (draw/clear).
+ */
 SSD1306_BufferMode SSD1306_get_buffer_mode(SSD1306_T* display) {
     return display->buffer_mode;
 }
 
+/**
+ * @brief Returns the current font of the display.
+ * 
+ * Notes:
+ * 
+ * - Font can be set by calling 'SSD1306_set_font()'.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @return The current font of the display. Returns 'NULL' if there's no font.
+ */
 const GFXfont* SSD1306_get_font(SSD1306_T* display) {
     return display->font;
 }
 
+/**
+ * @brief Returns the current font scale of the display.
+ * 
+ * Notes:
+ * 
+ * - Font scale can be set by calling 'SSD1306_set_font_scale()'.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @return The current font scale of the display.
+ */
 uint8_t SSD1306_get_font_scale(SSD1306_T* display) {
     return display->font_scale;
 }
 
+/**
+ * @brief Returns the coordinates of the current cursor location.
+ * 
+ * Notes:
+ * 
+ * - Cursor location can be set by calling 'SSD1306_set_cursor()'.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @param x Pointer where the current x-coordinate will be placed.
+ * @param y Pointer where the current y-coordinate will be placed.
+ * @return The x-coordinate for after a carriage return.
+ */
 int16_t SSD1306_get_cursor(SSD1306_T* display, int16_t* x, int16_t* y) {
     *x = display->cursor_x;
     *y = display->cursor_y;
     return display->cursor_x0;
 }
 
+/**
+ * @brief Returns a pointer to the display buffer.
+ * 
+ * Notes:
+ * 
+ * - If the 'SSD1306_init()' was never called with the given structure, the
+ * return value will be random.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @return Pointer to the display buffer.
+ */
 uint8_t* SSD1306_get_buffer(SSD1306_T* display) {
     return display->buffer;
 }
 
+/**
+ * @brief Returns the value of the specified pixel.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @param x x-coordinate of the pixel.
+ * @param y y-coordinate of the pixel.
+ * @return The value of the specified pixel ('0' or '1'). Coordinates that are
+ * out of bounds will return '0' as well.
+ */
 uint8_t SSD1306_get_buffer_pixel(SSD1306_T* display, int16_t x, int16_t y) {
     // Return 0 if out of bounds
     if (x < 0) {return 0;}
