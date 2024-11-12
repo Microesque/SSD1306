@@ -646,6 +646,21 @@ void SSD1306_draw_fill(SSD1306_T* display) {
     }
 }
 
+/**
+ * @brief Shifts the buffer contents to the right by one pixel.
+ * 
+ * Notes:
+ * 
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @param is_rotated 'true' to enable rotation; 'false' to just shift. If the
+ * rotation is enabled, all of the pixels that shift off screen will enter back
+ * from the other side. If the rotation is disabled, all of the pixels that
+ * shift off screen are clipped. The value for the new pixels that enter the
+ * screen is determined by the buffer mode.
+ */
 void SSD1306_draw_shift_right(SSD1306_T* display, bool is_rotated) {
     uint8_t page_last;
     if (display->display_type) {
@@ -681,6 +696,21 @@ void SSD1306_draw_shift_right(SSD1306_T* display, bool is_rotated) {
     }
 }
 
+/**
+ * @brief Shifts the buffer contents to the left by one pixel.
+ * 
+ * Notes:
+ * 
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @param is_rotated 'true' to enable rotation; 'false' to just shift. If the
+ * rotation is enabled, all of the pixels that shift off screen will enter back
+ * from the other side. If the rotation is disabled, all of the pixels that
+ * shift off screen are clipped. The value for the new pixels that enter the
+ * screen is determined by the buffer mode.
+ */
 void SSD1306_draw_shift_left(SSD1306_T* display, bool is_rotated) {
     uint8_t page_last;
     if (display->display_type) {
@@ -715,6 +745,21 @@ void SSD1306_draw_shift_left(SSD1306_T* display, bool is_rotated) {
     }
 }
 
+/**
+ * @brief Shifts the buffer contents upward by one pixel.
+ * 
+ * Notes:
+ * 
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @param is_rotated 'true' to enable rotation; 'false' to just shift. If the
+ * rotation is enabled, all of the pixels that shift off screen will enter back
+ * from the other side. If the rotation is disabled, all of the pixels that
+ * shift off screen are clipped. The value for the new pixels that enter the
+ * screen is determined by the buffer mode.
+ */
 void SSD1306_draw_shift_up(SSD1306_T* display, bool is_rotated) {
     uint8_t page_last;
     if (display->display_type) {
@@ -771,6 +816,21 @@ void SSD1306_draw_shift_up(SSD1306_T* display, bool is_rotated) {
     }
 }
 
+/**
+ * @brief Shifts the buffer contents downward by one pixel.
+ * 
+ * Notes:
+ * 
+ * - Draw functions don't update the display. Don't forget to call the
+ * 'SSD1306_display_update()' to push the buffer onto the display.
+ * 
+ * @param display Pointer to an 'SSD1306_T' structure.
+ * @param is_rotated 'true' to enable rotation; 'false' to just shift. If the
+ * rotation is enabled, all of the pixels that shift off screen will enter back
+ * from the other side. If the rotation is disabled, all of the pixels that
+ * shift off screen are clipped. The value for the new pixels that enter the
+ * screen is determined by the buffer mode.
+ */
 void SSD1306_draw_shift_down(SSD1306_T* display, bool is_rotated) {
     uint8_t page_last;
     if (display->display_type) {
@@ -1632,7 +1692,6 @@ void SSD1306_draw_circle(SSD1306_T* display, int16_t x0, int16_t y0,
                          int16_t r) {
     SSD1306_draw_arc(display, x0, y0, r, 0b1111);
 }
-
 
 /**
  * @brief Draws a filled circle with the specified radius, centered at the
