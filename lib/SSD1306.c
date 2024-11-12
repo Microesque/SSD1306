@@ -901,8 +901,8 @@ void SSD1306_draw_shift_down(SSD1306_T* display, bool is_rotated) {
  * 'SSD1306_display_update()' to push the buffer onto the display.
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
- * @param x x coordinate of the pixel. Any value out of bounds will be clipped.
- * @param y y coordinate of the pixel. Any value out of bounds will be clipped.
+ * @param x x-coordinate of the pixel. Any value out of bounds will be clipped.
+ * @param y y-coordinate of the pixel. Any value out of bounds will be clipped.
  */
 void SSD1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y) {    
     // Clip the coordinates that are out of bounds
