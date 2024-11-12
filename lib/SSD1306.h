@@ -307,4 +307,6 @@
     void SSD1306_set_font_scale(SSD1306_T* display, uint8_t scale);
     void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);
 
+    uint8_t SSD1306_get_display_address(SSD1306_T* display);
+    
 #endif
