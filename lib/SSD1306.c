@@ -737,7 +737,6 @@ void SSD1306_draw_shift_up(SSD1306_T* display, bool is_rotated) {
     }
 
     // Shift each column
-
     uint8_t* byte_ptr;
     uint8_t* byte_next_ptr;
     uint8_t top_bit;
@@ -770,6 +769,62 @@ void SSD1306_draw_shift_up(SSD1306_T* display, bool is_rotated) {
 
         // Shift the last page
         *byte_ptr = (uint8_t)(*byte_ptr >> 1) + very_top_bit;
+    }
+}
+
+void SSD1306_draw_shift_down(SSD1306_T* display, bool is_rotated) {
+    uint8_t page_last;
+    if (display->display_type) {
+        page_last = 7;
+    }
+    else {
+        page_last = 3;
+    }
+
+    // Assign the top bit value if no rotation
+    uint8_t very_bottom_bit;
+    if (!is_rotated) {
+        if (display->buffer_mode) {
+            very_bottom_bit = 0;
+        }
+        else {
+            very_bottom_bit = 1;
+        }
+    }
+
+    // Shift each column
+    uint8_t* byte_ptr;
+    uint8_t* byte_next_ptr;
+    uint8_t bottom_bit;
+    for (uint8_t i = 0; i <= SSD1306_X_MAX; i++) {
+        // Start from the last page
+        byte_ptr = &display->buffer[i] + SSD1306_PAGE_OFFSETS[page_last];
+
+        // Save the top bit if rotated
+        if (is_rotated) {
+            if (*byte_ptr & 0x80) {
+                very_bottom_bit = 1;
+            }
+            else {
+                very_bottom_bit = 0;
+            }
+        }
+
+        // Shift all pages except for the last one
+        for (uint8_t page = 0; page < page_last; page++) {
+            byte_next_ptr = byte_ptr - SSD1306_PAGE1_OFFSET;
+            if (*byte_next_ptr & 0x80) {
+                bottom_bit = 1;
+            }
+            else {
+                bottom_bit = 0;
+            }
+            *byte_ptr = (uint8_t)(*byte_ptr << 1) + bottom_bit;
+            byte_ptr = byte_next_ptr;
+        }
+
+        // Shift the last page
+        *byte_ptr = (uint8_t)(*byte_ptr << 1) + very_bottom_bit;
     }
 }
 
