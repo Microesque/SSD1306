@@ -647,6 +647,41 @@ void SSD1306_draw_fill(SSD1306_T* display) {
     }
 }
 
+void SSD1306_draw_shift_right(SSD1306_T* display, bool is_rotated) {
+    uint8_t page_last;
+    if (display->display_type) {
+        page_last = 7;
+    }
+    else {
+        page_last = 3;
+    }
+
+    uint8_t temp;
+    uint8_t* byte_ptr;
+    for (uint8_t page = 0; page <= page_last; page++) {
+        byte_ptr = &display->buffer[SSD1306_PAGE_OFFSETS[page]];
+        byte_ptr += SSD1306_X_MAX;
+        
+        // Shift each byte
+        temp = *byte_ptr;
+        for (uint8_t i = 0; i < SSD1306_X_MAX; i++) {
+            *byte_ptr = *(byte_ptr - 1);
+            byte_ptr--;
+        }
+        
+        // Handle the last byte
+        if (is_rotated) {
+            *byte_ptr = temp;
+        }
+        else if (display->buffer_mode) {
+            *byte_ptr = 0x00;
+        }
+        else {
+            *byte_ptr = 0xFF;
+        }
+    }
+}
+
 /**
  * @brief Draws a pixel at the specified location.
  * 
