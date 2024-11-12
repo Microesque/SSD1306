@@ -2197,3 +2197,7 @@ SSD1306_BufferMode SSD1306_get_buffer_mode(SSD1306_T* display) {
 const GFXfont* SSD1306_get_font(SSD1306_T* display) {
     return display->font;
 }
+
+uint8_t SSD1306_get_font_scale(SSD1306_T* display) {
+    return display->font_scale;
+}
