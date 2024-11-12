@@ -150,14 +150,13 @@ static void H_draw_char(SSD1306_T* display, const uint8_t* bmp_start,
     uint8_t scale = display->font_scale;
     uint8_t pixels;
     uint8_t count = 8;
-    uint8_t bmp_offset = 0;
     for (uint8_t h = 0; h < height; h++) {
         for (uint8_t w = 0; w < width; w++) {
             // Read the next byte every 8 pixels
             if (count == 8) {
                 count = 0;
-                pixels = bmp_start[bmp_offset];
-                bmp_offset++;
+                pixels = *bmp_start;
+                bmp_start++;
             }
 
             // Draw the next pixel
