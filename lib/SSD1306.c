@@ -1705,13 +1705,12 @@ void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
                          const uint8_t* bmp, uint16_t width, uint16_t height,
                          bool has_bg) {
     uint8_t pixels;
-    int16_t bmp_offset = 0;
     for (int16_t h = 0; h < height; h++) {
         for (int16_t w = 0; w < width; w++) {
             // Read the next byte every 8 pixels
             if (!((uint8_t)w & 7)) {
-                pixels = bmp[bmp_offset];
-                bmp_offset++;
+                pixels = *bmp;
+                bmp++;
             }
 
             // Draw the pixel (XBM images are inverted)
