@@ -2207,3 +2207,7 @@ int16_t SSD1306_get_cursor(SSD1306_T* display, int16_t* x, int16_t* y) {
     *y = display->cursor_y;
     return display->cursor_x0;
 }
+
+uint8_t* SSD1306_get_buffer(SSD1306_T* display) {
+    return display->buffer;
+}
