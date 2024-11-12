@@ -2201,3 +2201,9 @@ const GFXfont* SSD1306_get_font(SSD1306_T* display) {
 uint8_t SSD1306_get_font_scale(SSD1306_T* display) {
     return display->font_scale;
 }
+
+int16_t SSD1306_get_cursor(SSD1306_T* display, int16_t* x, int16_t* y) {
+    *x = display->cursor_x;
+    *y = display->cursor_y;
+    return display->cursor_x0;
+}
