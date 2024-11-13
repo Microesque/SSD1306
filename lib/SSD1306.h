@@ -236,84 +236,84 @@
     /*-------------------------- Available Functions -------------------------*/
     /*------------------------------------------------------------------------*/
     
-    void SSD1306_init(SSD1306_T* display,
+    void ssd1306_init(SSD1306_T* display,
                       uint8_t I2C_address,
                       void (*I2C_start)(void),
                       uint8_t (*I2C_write)(uint8_t),
                       void (*I2C_stop)(void),
                       SSD1306_DisplayType display_type,
                       uint8_t* buffer);
-    void SSD1306_reinit(SSD1306_T* display);
+    void ssd1306_reinit(SSD1306_T* display);
     
-    void SSD1306_display_update(SSD1306_T* display);
-    void SSD1306_display_brightness(SSD1306_T* display, uint8_t brightness);
-    void SSD1306_display_enable(SSD1306_T* display, bool is_enabled);
-    void SSD1306_display_fully_on(SSD1306_T* display, bool is_enabled);
-    void SSD1306_display_inverse(SSD1306_T* display, bool is_enabled);
-    void SSD1306_display_mirror_h(SSD1306_T* display, bool is_enabled);
-    void SSD1306_display_mirror_v(SSD1306_T* display, bool is_enabled);
-    void SSD1306_display_scroll_enable(SSD1306_T* display, bool is_left,
+    void ssd1306_display_update(SSD1306_T* display);
+    void ssd1306_display_brightness(SSD1306_T* display, uint8_t brightness);
+    void ssd1306_display_enable(SSD1306_T* display, bool is_enabled);
+    void ssd1306_display_fully_on(SSD1306_T* display, bool is_enabled);
+    void ssd1306_display_inverse(SSD1306_T* display, bool is_enabled);
+    void ssd1306_display_mirror_h(SSD1306_T* display, bool is_enabled);
+    void ssd1306_display_mirror_v(SSD1306_T* display, bool is_enabled);
+    void ssd1306_display_scroll_enable(SSD1306_T* display, bool is_left,
                                        bool is_diagonal, uint8_t interval);
-    void SSD1306_display_scroll_disable(SSD1306_T* display);
+    void ssd1306_display_scroll_disable(SSD1306_T* display);
     
-    void SSD1306_draw_clear(SSD1306_T* display);
-    void SSD1306_draw_fill(SSD1306_T* display);
-    void SSD1306_draw_shift_right(SSD1306_T* display, bool is_rotated);
-    void SSD1306_draw_shift_left(SSD1306_T* display, bool is_rotated);
-    void SSD1306_draw_shift_up(SSD1306_T* display, bool is_rotated);
-    void SSD1306_draw_shift_down(SSD1306_T* display, bool is_rotated);
-    void SSD1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y);
-    void SSD1306_draw_line_h(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_clear(SSD1306_T* display);
+    void ssd1306_draw_fill(SSD1306_T* display);
+    void ssd1306_draw_shift_right(SSD1306_T* display, bool is_rotated);
+    void ssd1306_draw_shift_left(SSD1306_T* display, bool is_rotated);
+    void ssd1306_draw_shift_up(SSD1306_T* display, bool is_rotated);
+    void ssd1306_draw_shift_down(SSD1306_T* display, bool is_rotated);
+    void ssd1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y);
+    void ssd1306_draw_line_h(SSD1306_T* display, int16_t x0, int16_t y0,
                              int16_t width);
-    void SSD1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
                              int16_t height);
-    void SSD1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0,
                            int16_t x1, int16_t y1);
-    void SSD1306_draw_triangle(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_triangle(SSD1306_T* display, int16_t x0, int16_t y0,
                                int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-    void SSD1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                                     int16_t x1, int16_t y1, int16_t x2,
                                     int16_t y2);
-    void SSD1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
                            int16_t width, int16_t height);
-    void SSD1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                                 int16_t width, int16_t height);
-    void SSD1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
                                  int16_t width, int16_t height, int16_t r);
-    void SSD1306_draw_rect_round_fill(SSD1306_T* display, int16_t x0,
+    void ssd1306_draw_rect_round_fill(SSD1306_T* display, int16_t x0,
                                       int16_t y0, int16_t width, int16_t height,
                                       int16_t r);
-    void SSD1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
+    void ssd1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
                           uint8_t quadrant);
-    void SSD1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                                int16_t r, uint8_t quadrant);
-    void SSD1306_draw_circle(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_circle(SSD1306_T* display, int16_t x0, int16_t y0,
                              int16_t r);
-    void SSD1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
                                   int16_t r);
-    void SSD1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
+    void ssd1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
                              const uint8_t* bmp, uint16_t width,
                              uint16_t height, bool has_bg);
-    void SSD1306_draw_char(SSD1306_T* display, char c);
-    void SSD1306_draw_char_custom(SSD1306_T* display,
+    void ssd1306_draw_char(SSD1306_T* display, char c);
+    void ssd1306_draw_char_custom(SSD1306_T* display,
                                   const SSD1306_CustomChar* c);
-    void SSD1306_draw_str(SSD1306_T* display, const char* str);
-    void SSD1306_draw_int32(SSD1306_T* display, int32_t num);
-    void SSD1306_draw_float(SSD1306_T* display, float num, uint8_t digits);
-    void SSD1306_draw_printf(SSD1306_T* display, const char* format, ...);
+    void ssd1306_draw_str(SSD1306_T* display, const char* str);
+    void ssd1306_draw_int32(SSD1306_T* display, int32_t num);
+    void ssd1306_draw_float(SSD1306_T* display, float num, uint8_t digits);
+    void ssd1306_draw_printf(SSD1306_T* display, const char* format, ...);
 
-    void SSD1306_set_buffer_mode(SSD1306_T* display, SSD1306_BufferMode mode);
-    void SSD1306_set_font(SSD1306_T* display, const GFXfont* font);
-    void SSD1306_set_font_scale(SSD1306_T* display, uint8_t scale);
-    void SSD1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);
+    void ssd1306_set_buffer_mode(SSD1306_T* display, SSD1306_BufferMode mode);
+    void ssd1306_set_font(SSD1306_T* display, const GFXfont* font);
+    void ssd1306_set_font_scale(SSD1306_T* display, uint8_t scale);
+    void ssd1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y);
 
-    uint8_t SSD1306_get_display_address(SSD1306_T* display);
-    SSD1306_DisplayType SSD1306_get_display_type(SSD1306_T* display);
-    SSD1306_BufferMode SSD1306_get_buffer_mode(SSD1306_T* display);
-    const GFXfont* SSD1306_get_font(SSD1306_T* display);
-    uint8_t SSD1306_get_font_scale(SSD1306_T* display);
-    int16_t SSD1306_get_cursor(SSD1306_T* display, int16_t* x, int16_t* y);
-    uint8_t* SSD1306_get_buffer(SSD1306_T* display);
-    uint8_t SSD1306_get_buffer_pixel(SSD1306_T* display, int16_t x, int16_t y);
+    uint8_t ssd1306_get_display_address(SSD1306_T* display);
+    SSD1306_DisplayType ssd1306_get_display_type(SSD1306_T* display);
+    SSD1306_BufferMode ssd1306_get_buffer_mode(SSD1306_T* display);
+    const GFXfont* ssd1306_get_font(SSD1306_T* display);
+    uint8_t ssd1306_get_font_scale(SSD1306_T* display);
+    int16_t ssd1306_get_cursor(SSD1306_T* display, int16_t* x, int16_t* y);
+    uint8_t* ssd1306_get_buffer(SSD1306_T* display);
+    uint8_t ssd1306_get_buffer_pixel(SSD1306_T* display, int16_t x, int16_t y);
 
 #endif
