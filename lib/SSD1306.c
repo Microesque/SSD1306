@@ -105,15 +105,21 @@ static const uint16_t SSD1306_PAGE_OFFSETS[] = {
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Sends commands or data to the display.
+ * @brief Sends a stream of commands or data to the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param write_mode Command vs data mode.
- * @param data Pointer to an array of bytes to be sent to the display.
- * @param length Number of bytes from the data array to send.
+ * @note In command mode, bytes are written to the internal command registers.
+ * In data mode, bytes are written to the display RAM to update the pixels.
+ * 
+ * @param display Pointer to the ssd1306_display structure.
+ * @param write_mode Indicates whether the stream should be sent in command mode
+ * or data mode.
+ * @param buffer Pointer to an array of bytes to be sent to the display.
+ * @param length Number of bytes to send from the buffer.
  */
-static void h_display_write(struct ssd1306_display *display, enum ssd1306_write_mode write_mode,
-                            const uint8_t *data, uint16_t length) {
+static void h_display_write(struct ssd1306_display *display,
+                            enum ssd1306_write_mode write_mode,
+                            const uint8_t *buffer, uint16_t length)
+{
     uint8_t mode;
     if (write_mode) {
         mode = SSD1306_CONTROL_DATA;
@@ -125,29 +131,41 @@ static void h_display_write(struct ssd1306_display *display, enum ssd1306_write_
     display->I2C_write((uint8_t)(display->I2C_address << 1));
     display->I2C_write(mode);
     for (uint16_t i = 0; i < length; i++) {
-        display->I2C_write(data[i]);
+        display->I2C_write(buffer[i]);
     }
     display->I2C_stop();
 }
 
 /**
- * @brief Does the actual character drawing part. Uses the GFX font format to
- * draw.
+ * @brief Draws a character with the specified values at the current cursor
+ * location.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param bmp_start Pointer to the starting address of the bitmap array.
- * @param width Width of the character.
- * @param height Height of the character.
- * @param x_offset x-offset of the character.
- * @param y_offset y-offset of the character.
- * @param x_advance x-advence of the character.
+ * @note
+ * - Only draws characters with the specified bitmap; doesn't handle special
+ * non-printable characters like '\\n'.
+ * 
+ * - Automatically advances the cursor.
+ * 
+ * @param display Pointer to the ssd1306_display structure.
+ * @param bitmap Pointer to the bitmap array.
+ * @param width Width of the character. Should match the bitmap or random parts
+ * of the memory may be accessed.
+ * @param height Height of the character. Should match the bitmap or random
+ * parts of the memory may be accessed.
+ * @param x_offset x-offset of the character. Represents the number of pixels
+ * (horizontally) the top-left corner of the bitmap is offset from the current
+ * cursor coordinates.
+ * @param y_offset y-offset of the character. Represents the number of pixels
+ * (vertically) the top-left corner of the bitmap is offset from the current
+ * cursor coordinates.
+ * @param x_advance x-advance of the character. Represents the number of pixels
+ * the cursor should advance after drawing.
  */
-static void h_draw_char(struct ssd1306_display *display, const uint8_t *bmp_start,
-                                            uint8_t width,
-                                            uint8_t height,
-                                            int8_t x_offset,
-                                            int8_t y_offset,
-                                            uint8_t x_advance) {
+static void h_draw_char(struct ssd1306_display *display,
+                        const uint8_t *bitmap,
+                        uint8_t width, uint8_t height, int8_t x_offset,
+                        int8_t y_offset, uint8_t x_advance)
+{
     // Draw the character (with scale in mind)
     uint8_t scale = display->font_scale;
     uint8_t pixels;
@@ -157,8 +175,8 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bmp_star
             // Read the next byte every 8 pixels
             if (count == 8) {
                 count = 0;
-                pixels = *bmp_start;
-                bmp_start++;
+                pixels = *bitmap;
+                bitmap++;
             }
 
             // Draw the next pixel
@@ -191,40 +209,36 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bmp_star
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Initializes an 'SSD1306_T' structure as well as its physical display.
+ * @brief Initializes the ssd1306_display structure as well as the display.
  * 
- * Notes:
+ * @note
+ * - If you've already called this function at least once and want to
+ * re-initialize the display, use ssd1306_reinit() instead.
  * 
- * - If you already called 'SSD1306_init()' at least once, and want to
- * re-initialize the display, use 'SSD1306_reinit()' instead. It does the same
- * thing without re-initializing the structure.
- * 
- * - The display will revert to its default configurations. You can change
- * these configurations individually in the header file.
+ * - The display will reset to default configurations. These can be modified
+ * individually through the header file.
  * 
  * - Any ongoing scrolls will be disabled (limitation of the driver chip).
  * 
- * - Display will be updated (limitation of the driver chip).
+ * - The display will be updated (limitation of the driver chip).
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param I2C_address 7-bit address of your display.
- * @param I2C_start Pointer to your function to initiate an I2C start
+ * @param display Pointer to the ssd1306_display structure.
+ * @param I2C_address 7-bit address of the display.
+ * @param I2C_start Pointer to the function that initiates an I2C start
  * condition.
- * @param I2C_write Pointer to your function to send an 8-bit data on the I2C
- * bus.
- * @param I2C_stop Pointer to your function to initiate an I2C stop condition.
- * @param display_type Type of your display (128x32 or 128x64).
- * @param buffer Pointer to an array that'll be used as the buffer for that
+ * @param I2C_write Pointer to the function that sends 8-bit data on the
+ * I2C bus.
+ * @param I2C_stop Pointer to the function that initiates an I2C stop condition.
+ * @param display_type Type of the display (128x32 or 128x64).
+ * @param buffer Pointer to the array that'll be used as the buffer for that
  * display. Use the macros in the header file to declare an array with the
- * appropriate size according to your display type.
+ * appropriate size according to the display type.
  */
-void ssd1306_init(struct ssd1306_display *display,
-                  uint8_t I2C_address,
-                  void (*I2C_start)(void),
-                  uint8_t (*I2C_write)(uint8_t),
+void ssd1306_init(struct ssd1306_display *display, uint8_t I2C_address,
+                  void (*I2C_start)(void), uint8_t (*I2C_write)(uint8_t),
                   void (*I2C_stop)(void),
-                  enum ssd1306_display_type display_type,
-                  uint8_t *buffer){
+                  enum ssd1306_display_type display_type, uint8_t *buffer)
+{
     // SSD1306_T structure initializations
     display->I2C_address = I2C_address;
     display->I2C_start = I2C_start;
@@ -240,21 +254,21 @@ void ssd1306_init(struct ssd1306_display *display,
 /**
  * @brief Re-initializes the display.
  * 
- * Notes:
+ * @note
+ * - Same as calling ssd1306_init, but without initializing the structure again.
+ * Do NOT use this function if you haven't called ssd1306_init() at least once.
  * 
- * - Basically the same as calling 'SSD1306_init()', but without initializing
- * the structure or having to pass the other parameters again.
- * 
- * - The display will revert to its default configurations. You can change
- * these configurations individually in the header file.
+ * - The display will reset to default configurations. These can be modified
+ * individually through the header file.
  * 
  * - Any ongoing scrolls will be disabled (limitation of the driver chip).
  * 
- * - Display will be updated (limitation of the driver chip).
+ * - The display will be updated (limitation of the driver chip).
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  */
-void ssd1306_reinit(struct ssd1306_display *display) {
+void ssd1306_reinit(struct ssd1306_display *display)
+{
     // Disable scrolls to avoid showing corrupted content
     ssd1306_display_scroll_disable(display);
 
@@ -363,9 +377,10 @@ void ssd1306_reinit(struct ssd1306_display *display) {
 /**
  * @brief Updates the display with the current buffer values.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  */
-void ssd1306_display_update(struct ssd1306_display *display) {
+void ssd1306_display_update(struct ssd1306_display *display)
+{
     uint16_t buffer_size;
     if (display->display_type) {
         buffer_size = SSD1306_BUFFER_SIZE_64;
@@ -379,23 +394,28 @@ void ssd1306_display_update(struct ssd1306_display *display) {
 /**
  * @brief Sets the brightness level of the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param brightness Brightness level [0-255]. 255 corresponds to the maximum
  * brightness.
  */
-void ssd1306_display_brightness(struct ssd1306_display *display, uint8_t brightness) {
+void ssd1306_display_brightness(struct ssd1306_display *display,
+                                uint8_t brightness)
+{
     uint8_t cmd[] = {SSD1306_CMD_SET_CONTRAST_CONTROL, brightness};
     h_display_write(display, SSD1306_WRITE_CMD, cmd, 2);
 }
 
 /**
- * @brief When enabled, turns the display on. When disabled, the screen will
- * remain black, regardless of its contents (contents are not lost).
+ * @brief Enables or disables the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param is_enabled 'true' to enable; 'false' to disable.
+ * @note When enabled, the display is operated as normal. When disabled, the
+ * screen remains black, regardless of the contents (the contents are not lost).
+ * 
+ * @param display Pointer to the ssd1306_display structure.
+ * @param is_enabled `true` to enable; `false` to disable.
  */
-void ssd1306_display_enable(struct ssd1306_display *display, bool is_enabled) {
+void ssd1306_display_enable(struct ssd1306_display *display, bool is_enabled)
+{
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_DISPLAY_ON;
@@ -407,13 +427,16 @@ void ssd1306_display_enable(struct ssd1306_display *display, bool is_enabled) {
 }
 
 /**
- * @brief When enabled, all of the pixels of the display will turn on regardless
- * of its contents (contents are not lost).
+ * @brief Enables or disables the fully-on feature of the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @note When enabled, all pixels of the display are turned on, regardless of
+ * the contents (the contents are not lost).
+ * 
+ * @param display Pointer to the ssd1306_display structure.
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
-void ssd1306_display_fully_on(struct ssd1306_display *display, bool is_enabled) {
+void ssd1306_display_fully_on(struct ssd1306_display *display, bool is_enabled)
+{
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_ENTIRE_DISPLAY_ON_ENABLED;
@@ -425,13 +448,16 @@ void ssd1306_display_fully_on(struct ssd1306_display *display, bool is_enabled) 
 }
 
 /**
- * @brief When enabled, the contents of the display will be shown inverted
- * (pixels that are supposed to be on will be off and vice versa).
+ * @brief Enables or disables the inverse feature of the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @note When enabled, the display contents are inverted, meaning pixels that
+ * are on will appear off, and vice versa.
+ * 
+ * @param display Pointer to the ssd1306_display structure.
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
-void ssd1306_display_inverse(struct ssd1306_display *display, bool is_enabled) {
+void ssd1306_display_inverse(struct ssd1306_display *display, bool is_enabled)
+{
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_INVERSE_ENABLED;
@@ -443,13 +469,15 @@ void ssd1306_display_inverse(struct ssd1306_display *display, bool is_enabled) {
 }
 
 /**
- * @brief When enabled, the contents of the display will be shown horizontally
- * mirrored.
+ * @brief Enables or disables the horizontal mirror feature of the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @note When enabled, the display contents are shown horizontally mirrored.
+ * 
+ * @param display Pointer to the ssd1306_display structure.
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
-void ssd1306_display_mirror_h(struct ssd1306_display *display, bool is_enabled) {
+void ssd1306_display_mirror_h(struct ssd1306_display *display, bool is_enabled)
+{
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_SEGMENT_REMAP_ENABLED;
@@ -464,13 +492,15 @@ void ssd1306_display_mirror_h(struct ssd1306_display *display, bool is_enabled) 
 }
 
 /**
- * @brief When enabled, the contents of the display will be shown vertically
- * mirrored.
+ * @brief Enables or disables the vertical mirror feature of the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @note When enabled, the display contents are shown vertically mirrored.
+ * 
+ * @param display Pointer to the ssd1306_display structure.
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
-void ssd1306_display_mirror_v(struct ssd1306_display *display, bool is_enabled) {
+void ssd1306_display_mirror_v(struct ssd1306_display *display, bool is_enabled)
+{
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_SCAN_REMAP_ENABLED;
@@ -482,27 +512,27 @@ void ssd1306_display_mirror_v(struct ssd1306_display *display, bool is_enabled) 
 }
 
 /**
- * @brief Starts up a continuous horizontal or diagonal scroll.
+ * @brief Starts a continuous horizontal or diagonal scroll.
  * 
- * Notes (limitations of the driver chip):
+ * @note
+ * Limitations of the driver chip:
  * 
- * - Automatically updates the display. Any subsequent updates to the display
- * while a scrolling is in progress will cause the contents of the display to
- * be corrupted. Call 'SSD1306_display_scroll_disable()' before updating the
- * display again.
+ * - The display will be updated, and any subsequent updates will cause the
+ * contents of the display to be corrupted. To prevent corruption, call
+ * ssd1306_display_scroll_disable() before updating.
  * 
- * - Vertical scrolling by itself is not available.
+ * - Vertical scrolling is not supported.
  * 
- * - Diagonal scroll won't work with "128x64" displays.
+ * - Diagonal scrolling will not work on 128x64 displays.
  * 
  * - The vertical aspect of the diagonal scroll will always be upwards.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param is_left 'true' to scroll left; 'false' to scroll right.
  * @param is_diagonal 'true' to scroll diagonally; 'false' to scroll
  * horizontally.
  * @param interval Interval between each scroll. Values higher than 7 will loop
- * down the list.
+ * down the list:
  * 
  *  - 0 -> 5 frames
  * 
@@ -520,8 +550,10 @@ void ssd1306_display_mirror_v(struct ssd1306_display *display, bool is_enabled) 
  * 
  *  - 7 -> 2 frames
  */
-void ssd1306_display_scroll_enable(struct ssd1306_display *display, bool is_left,
-                                   bool is_diagonal, uint8_t interval) {
+void ssd1306_display_scroll_enable(struct ssd1306_display *display,
+                                   bool is_left, bool is_diagonal,
+                                   uint8_t interval)
+{
     // Disable scrolling first (datasheet p44)
     ssd1306_display_scroll_disable(display);
     
@@ -569,15 +601,15 @@ void ssd1306_display_scroll_enable(struct ssd1306_display *display, bool is_left
 /**
  * @brief Stops an ongoing scroll.
  * 
- * Notes:
+ * @note
+ * - The display will be updated (limitation of the driver chip).
  * 
- * - Automatically updates the display.
+ * - To start a scroll, call ssd1306_display_scroll_enable().
  * 
- * - You can start a scroll by calling 'SSD1306_display_scroll_enable()'.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  */
-void ssd1306_display_scroll_disable(struct ssd1306_display *display) {
+void ssd1306_display_scroll_disable(struct ssd1306_display *display)
+{
     uint8_t cmd = SSD1306_CMD_SCROLL_DISABLE;
     h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
     
@@ -599,18 +631,18 @@ void ssd1306_display_scroll_disable(struct ssd1306_display *display) {
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Clears the entire display (all pixels off).
+ * @brief Clears the entire buffer (all pixels off).
  * 
- * Notes:
- * 
+ * @note
  * - Ignores buffer mode (draw/clear).
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  */
-void ssd1306_draw_clear(struct ssd1306_display *display) {
+void ssd1306_draw_clear(struct ssd1306_display *display)
+{
     uint16_t buffer_size;
     if (display->display_type) {
         buffer_size = SSD1306_BUFFER_SIZE_64;
@@ -624,16 +656,15 @@ void ssd1306_draw_clear(struct ssd1306_display *display) {
 }
 
 /**
- * @brief Fills the entire display (all pixels lit up).
+ * @brief Fills the entire buffer (all pixels on).
  * 
- * Notes:
- * 
+ * @note
  * - Ignores buffer mode (draw/clear).
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  */
 void ssd1306_draw_fill(struct ssd1306_display *display) {
     uint16_t buffer_size;
@@ -651,19 +682,18 @@ void ssd1306_draw_fill(struct ssd1306_display *display) {
 /**
  * @brief Shifts the buffer contents to the right by one pixel.
  * 
- * Notes:
+ * @note Draw functions don't update the display. Don't forget to call the
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param is_rotated 'true' to enable rotation; 'false' to just shift. If the
- * rotation is enabled, all of the pixels that shift off screen will enter back
- * from the other side. If the rotation is disabled, all of the pixels that
- * shift off screen are clipped. The value for the new pixels that enter the
- * screen is determined by the buffer mode.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param is_rotated `true` to enable rotation; `false` to just shift. When
+ * rotation is enabled, pixels that shift off-screen reappear on the opposite
+ * side. When rotation is disabled, pixels that shift off-screen are clipped,
+ * and the value for new pixels entering the screen is determined by the buffer
+ * mode.
  */
-void ssd1306_draw_shift_right(struct ssd1306_display *display, bool is_rotated) {
+void ssd1306_draw_shift_right(struct ssd1306_display *display, bool is_rotated)
+{
     uint8_t page_last;
     if (display->display_type) {
         page_last = 7;
@@ -701,19 +731,18 @@ void ssd1306_draw_shift_right(struct ssd1306_display *display, bool is_rotated) 
 /**
  * @brief Shifts the buffer contents to the left by one pixel.
  * 
- * Notes:
+ * @note Draw functions don't update the display. Don't forget to call the
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param is_rotated 'true' to enable rotation; 'false' to just shift. If the
- * rotation is enabled, all of the pixels that shift off screen will enter back
- * from the other side. If the rotation is disabled, all of the pixels that
- * shift off screen are clipped. The value for the new pixels that enter the
- * screen is determined by the buffer mode.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param is_rotated `true` to enable rotation; `false` to just shift. When
+ * rotation is enabled, pixels that shift off-screen reappear on the opposite
+ * side. When rotation is disabled, pixels that shift off-screen are clipped,
+ * and the value for new pixels entering the screen is determined by the buffer
+ * mode.
  */
-void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated) {
+void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated)
+{
     uint8_t page_last;
     if (display->display_type) {
         page_last = 7;
@@ -750,19 +779,18 @@ void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated) {
 /**
  * @brief Shifts the buffer contents upward by one pixel.
  * 
- * Notes:
+ * @note Draw functions don't update the display. Don't forget to call the
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param is_rotated 'true' to enable rotation; 'false' to just shift. If the
- * rotation is enabled, all of the pixels that shift off screen will enter back
- * from the other side. If the rotation is disabled, all of the pixels that
- * shift off screen are clipped. The value for the new pixels that enter the
- * screen is determined by the buffer mode.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param is_rotated `true` to enable rotation; `false` to just shift. When
+ * rotation is enabled, pixels that shift off-screen reappear on the opposite
+ * side. When rotation is disabled, pixels that shift off-screen are clipped,
+ * and the value for new pixels entering the screen is determined by the buffer
+ * mode.
  */
-void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated) {
+void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated)
+{
     uint8_t page_last;
     if (display->display_type) {
         page_last = 7;
@@ -821,19 +849,18 @@ void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated) {
 /**
  * @brief Shifts the buffer contents downward by one pixel.
  * 
- * Notes:
+ * @note Draw functions don't update the display. Don't forget to call the
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param is_rotated 'true' to enable rotation; 'false' to just shift. If the
- * rotation is enabled, all of the pixels that shift off screen will enter back
- * from the other side. If the rotation is disabled, all of the pixels that
- * shift off screen are clipped. The value for the new pixels that enter the
- * screen is determined by the buffer mode.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param is_rotated `true` to enable rotation; `false` to just shift. When
+ * rotation is enabled, pixels that shift off-screen reappear on the opposite
+ * side. When rotation is disabled, pixels that shift off-screen are clipped,
+ * and the value for new pixels entering the screen is determined by the buffer
+ * mode.
  */
-void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated) {
+void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated)
+{
     uint8_t page_last;
     if (display->display_type) {
         page_last = 7;
@@ -890,23 +917,23 @@ void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated) {
 }
 
 /**
- * @brief Draws a pixel at the specified location.
+ * @brief Draws a pixel at the specified coordinates.
  * 
- * Notes:
+ * @note
+ * - Clears the pixel instead if the buffer is in clear mode.
  * 
- * - Clears the pixel instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x x-coordinate of the pixel. Any value out of bounds will be clipped.
  * @param y y-coordinate of the pixel. Any value out of bounds will be clipped.
  */
-void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {    
+void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y)
+{    
     // Clip the coordinates that are out of bounds
     if (x < 0) {return;}
     if (y < 0) {return;}
@@ -938,24 +965,24 @@ void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {
  * @brief Draws a horizontal line starting from the specified coordinates and
  * extending to the specified length.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the starting point.
  * @param y0 y-coordinate of the starting point.
  * @param width Width of the line. A positive value extends the line to the
  * right, while a negative value extends it to the left.
  */
-void ssd1306_draw_line_h(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                         int16_t width) {
+void ssd1306_draw_line_h(struct ssd1306_display *display, int16_t x0,
+                         int16_t y0, int16_t width)
+{
     int16_t xi;
     
     // Change direction if width is negative
@@ -978,24 +1005,24 @@ void ssd1306_draw_line_h(struct ssd1306_display *display, int16_t x0, int16_t y0
  * @brief Draws a vertical line starting from the specified coordinates and
  * extending to the specified length.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the starting point.
  * @param y0 y-coordinate of the starting point.
- * @param height Height of the line. A positive value extends the line upward, 
- * while a negative value extends it downward.
+ * @param height Height of the line. A positive value extends the line downward,
+ * while a negative value extends it upward.
  */
-void ssd1306_draw_line_v(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                         int16_t height) {
+void ssd1306_draw_line_v(struct ssd1306_display *display, int16_t x0,
+                         int16_t y0, int16_t height)
+{
     int16_t yi;
     
     // Change direction if height is negative
@@ -1015,26 +1042,26 @@ void ssd1306_draw_line_v(struct ssd1306_display *display, int16_t x0, int16_t y0
 }
 
 /**
- * @brief Draws a straight line between the specified start and end coordinates.
+ * @brief Draws a a line between the specified coordinates.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param x0 x-coordinate of the starting point.
- * @param y0 y-coordinate of the starting point.
- * @param x1 x-coordinate of the ending point.
- * @param y1 y-coordinate of the ending point.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param x0 x-coordinate of the first point.
+ * @param y0 y-coordinate of the first point.
+ * @param x1 x-coordinate of the second point.
+ * @param y1 y-coordinate of the second point.
  */
-void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0, int16_t y0, int16_t x1,
-                       int16_t y1) {
+void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0, int16_t y0,
+                       int16_t x1, int16_t y1)
+{
     int16_t dx, dy, D, yi, temp;
     uint8_t is_swapped;
     
@@ -1099,26 +1126,27 @@ void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0, int16_t y0, 
 /**
  * @brief Draws a triangle between the specified coordinates.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param x0 x-coordinate of point-0.
- * @param y0 y-coordinate of point-0.
- * @param x1 x-coordinate of point-1.
- * @param y1 y-coordinate of point-1.
- * @param x2 x-coordinate of point-2.
- * @param y2 y-coordinate of point-2.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param x0 x-coordinate of the first point.
+ * @param y0 y-coordinate of the first point.
+ * @param x1 x-coordinate of the second point.
+ * @param y1 y-coordinate of the second point.
+ * @param x2 x-coordinate of the third point.
+ * @param y2 y-coordinate of the third point.
  */
-void ssd1306_draw_triangle(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                           int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
+void ssd1306_draw_triangle(struct ssd1306_display *display, int16_t x0,
+                           int16_t y0, int16_t x1, int16_t y1, int16_t x2,
+                           int16_t y2)
+{
     ssd1306_draw_line(display, x0, y0, x1, y1);
     ssd1306_draw_line(display, x1, y1, x2, y2);
     ssd1306_draw_line(display, x2, y2, x0, y0);
@@ -1127,26 +1155,27 @@ void ssd1306_draw_triangle(struct ssd1306_display *display, int16_t x0, int16_t 
 /**
  * @brief Draws a filled triangle between the specified coordinates.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param x0 x-coordinate of point-0.
- * @param y0 y-coordinate of point-0.
- * @param x1 x-coordinate of point-1.
- * @param y1 y-coordinate of point-1.
- * @param x2 x-coordinate of point-2.
- * @param y2 y-coordinate of point-2.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param x0 x-coordinate of the first point.
+ * @param y0 y-coordinate of the first point.
+ * @param x1 x-coordinate of the second point.
+ * @param y1 y-coordinate of the second point.
+ * @param x2 x-coordinate of the third point.
+ * @param y2 y-coordinate of the third point.
  */
-void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                               int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
+void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0,
+                                int16_t y0, int16_t x1, int16_t y1, int16_t x2,
+                                int16_t y2)
+{
     int16_t dx01, dy01, dx02, dy02, dx12, dy12;
     int16_t y, xa, xb, dxa, dxb, width;
     int16_t temp;
@@ -1263,17 +1292,16 @@ void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0, int
  * @brief Draws a rectangle starting from the specified coordinates and
  * extending to the specified lengths.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the starting point.
  * @param y0 y-coordinate of the starting point.
  * @param width Width of the rectangle. A positive value extends the rectangle
@@ -1282,7 +1310,8 @@ void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0, int
  * downward, while a negative value extends it upward.
  */
 void ssd1306_draw_rect(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                       int16_t width, int16_t height) {
+                       int16_t width, int16_t height)
+{
     // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
     
@@ -1307,17 +1336,16 @@ void ssd1306_draw_rect(struct ssd1306_display *display, int16_t x0, int16_t y0,
  * @brief Draws a filled rectangle starting from the specified coordinates and
  * extending to the specified lengths.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the starting point.
  * @param y0 y-coordinate of the starting point.
  * @param width Width of the rectangle. A positive value extends the rectangle
@@ -1326,7 +1354,8 @@ void ssd1306_draw_rect(struct ssd1306_display *display, int16_t x0, int16_t y0,
  * downward, while a negative value extends it upward.
  */
 void ssd1306_draw_rect_fill(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                            int16_t width, int16_t height) {
+                            int16_t width, int16_t height)
+{
     // Shift the rectangle if width or height is negative
     if (width < 0) {
         width = -width;
@@ -1348,17 +1377,16 @@ void ssd1306_draw_rect_fill(struct ssd1306_display *display, int16_t x0, int16_t
  * @brief Draws a rectangle with round corners starting from the specified
  * coordinates and extending to the specified lengths.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the starting point.
  * @param y0 y-coordinate of the starting point.
  * @param width Width of the rectangle. A positive value extends the rectangle
@@ -1366,11 +1394,13 @@ void ssd1306_draw_rect_fill(struct ssd1306_display *display, int16_t x0, int16_t
  * @param height Height of the rectangle. A positive value extends the rectangle
  * downward, while a negative value extends it upward.
  * @param r Radius of the corner arcs. If the given radius is too large, it will
- * be limited to the maximum radius possible. Passing zero or a negative value
+ * be limited to the maximum value possible. Passing zero or a negative value
  * will result in a normal rectangle.
  */
-void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                             int16_t width, int16_t height, int16_t r) {
+void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0,
+                             int16_t y0, int16_t width, int16_t height,
+                             int16_t r)
+{
     // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
     
@@ -1418,17 +1448,16 @@ void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0, int16_
  * @brief Draws a filled rectangle with round corners starting from the
  * specified coordinates and extending to the specified lengths.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the starting point.
  * @param y0 y-coordinate of the starting point.
  * @param width Width of the rectangle. A positive value extends the rectangle
@@ -1436,11 +1465,13 @@ void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0, int16_
  * @param height Height of the rectangle. A positive value extends the rectangle
  * downward, while a negative value extends it upward.
  * @param r Radius of the corner arcs. If the given radius is too large, it will
- * be limited to the maximum radius possible. Passing zero or a negative value
+ * be limited to the maximum value possible. Passing zero or a negative value
  * will result in a normal rectangle.
  */
-void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                                  int16_t width, int16_t height, int16_t r) {
+void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0,
+                                  int16_t y0, int16_t width, int16_t height,
+                                  int16_t r)
+ {
     // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
     
@@ -1497,42 +1528,42 @@ void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0, i
  * @brief Draws quadrant arcs with the specified radius, centered at the
  * specified coordinates.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the arc center.
  * @param y0 y-coordinate of the arc center.
- * @param r Radius of the arc in pixels. Negative values are ignored.
- * @param quadrant A 4-bit value where each bit represents a quadrant. Only the 
+ * @param r Radius of the arc. Negative values are ignored.
+ * @param quadrants A 4-bit value where each bit represents a quadrant. Only the 
  * right most 4-bits are checked. The most significant bit (MSB) represents
- * quadrant-4, while the least significant bit (LSB) represents quadrant-1. Set
+ * quadrant 4, while the least significant bit (LSB) represents quadrant 1. Set
  * the corresponding bits to enable drawing for those quadrants. For example,
- * '0b0101' enables drawing for quadrants 1 and 3.
+ * '0b0101' enables drawing for quadrants 3 and 1.
  */
-void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0, int16_t r,
-                      uint8_t quadrant) {
+void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0,
+                      int16_t r, uint8_t quadrants)
+{
     // Draw nothing if radius is 0
     if (r < 0) {return;}
     
     // Draw the 4 way corner pixels
-    if (quadrant & 0b1100) {
+    if (quadrants & 0b1100) {
         ssd1306_draw_pixel(display, x0, y0 + r);
     }
-    if (quadrant & 0b0011) {
+    if (quadrants & 0b0011) {
         ssd1306_draw_pixel(display, x0, y0 - r);
     }
-    if (quadrant & 0b1001) {
+    if (quadrants & 0b1001) {
         ssd1306_draw_pixel(display, x0 + r, y0);
     }
-    if (quadrant & 0b0110) {
+    if (quadrants & 0b0110) {
         ssd1306_draw_pixel(display, x0 - r, y0);
     }
 
@@ -1563,19 +1594,19 @@ void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0, i
         // Draw the arcs using 8-way symmetry
         diff_1 =  y - x + 1;
         diff_2 = -y + x - 1;
-        if (quadrant & 0b0001) {
+        if (quadrants & 0b0001) {
             ssd1306_draw_pixel(display, (x0 + x), (y0 - y));
             ssd1306_draw_pixel(display, (x0 + y), (y0 - x));
         }
-        if (quadrant & 0b0010) {
+        if (quadrants & 0b0010) {
             ssd1306_draw_pixel(display, (x0 - x), (y0 - y));
             ssd1306_draw_pixel(display, (x0 - y), (y0 - x));
         }
-        if (quadrant & 0b0100) {
+        if (quadrants & 0b0100) {
             ssd1306_draw_pixel(display, (x0 - x), (y0 + y));
             ssd1306_draw_pixel(display, (x0 - y), (y0 + x));
         }
-        if (quadrant & 0b1000) {
+        if (quadrants & 0b1000) {
             ssd1306_draw_pixel(display, (x0 + x), (y0 + y));
             ssd1306_draw_pixel(display, (x0 + y), (y0 + x));
         }
@@ -1586,42 +1617,42 @@ void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0, i
  * @brief Draws filled quadrant arcs with the specified radius, centered at the
  * specified coordinates.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the arc center.
  * @param y0 y-coordinate of the arc center.
- * @param r Radius of the arc in pixels. Negative values are ignored.
- * @param quadrant A 4-bit value where each bit represents a quadrant. Only the 
+ * @param r Radius of the arc. Negative values are ignored.
+ * @param quadrants A 4-bit value where each bit represents a quadrant. Only the 
  * right most 4-bits are checked. The most significant bit (MSB) represents
- * quadrant-4, while the least significant bit (LSB) represents quadrant-1. Set
+ * quadrant 4, while the least significant bit (LSB) represents quadrant 1. Set
  * the corresponding bits to enable drawing for those quadrants. For example,
- * '0b0101' enables drawing for quadrants 1 and 3.
+ * '0b0101' enables drawing for quadrants 3 and 1.
  */
-void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                           int16_t r, uint8_t quadrant) {
+void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0,
+                           int16_t y0, int16_t r, uint8_t quadrants)
+{
     // Draw nothing if radius is 0
     if (r < 0) {return;}
     
     // Draw the 4 way corner lines
-    if (quadrant & 0b1100) {
+    if (quadrants & 0b1100) {
         ssd1306_draw_line_v(display, x0, y0, r + 1);
     }
-    if (quadrant & 0b0011) {
+    if (quadrants & 0b0011) {
         ssd1306_draw_line_v(display, x0, y0, -r - 1);
     }
-    if (quadrant & 0b1001) {
+    if (quadrants & 0b1001) {
         ssd1306_draw_line_h(display, x0, y0, r + 1);
     }
-    if (quadrant & 0b0110) {
+    if (quadrants & 0b0110) {
         ssd1306_draw_line_h(display, x0, y0, -r - 1);
     }
 
@@ -1652,19 +1683,19 @@ void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0, int16_t 
         // Fill the arcs using 8-way symmetry
         diff_1 =  y - x + 1;
         diff_2 = -y + x - 1;
-        if (quadrant & 0b0001) {
+        if (quadrants & 0b0001) {
             ssd1306_draw_line_v(display, (x0 + x), (y0 - y), diff_1);
             ssd1306_draw_line_h(display, (x0 + y), (y0 - x), diff_2);
         }
-        if (quadrant & 0b0010) {
+        if (quadrants & 0b0010) {
             ssd1306_draw_line_v(display, (x0 - x), (y0 - y), diff_1);
             ssd1306_draw_line_h(display, (x0 - y), (y0 - x), diff_1);
         }
-        if (quadrant & 0b0100) {
+        if (quadrants & 0b0100) {
             ssd1306_draw_line_v(display, (x0 - x), (y0 + y), diff_2);
             ssd1306_draw_line_h(display, (x0 - y), (y0 + x), diff_1);
         }
-        if (quadrant & 0b1000) {
+        if (quadrants & 0b1000) {
             ssd1306_draw_line_v(display, (x0 + x), (y0 + y), diff_2);
             ssd1306_draw_line_h(display, (x0 + y), (y0 + x), diff_2);
         }
@@ -1675,23 +1706,23 @@ void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0, int16_t 
  * @brief Draws a circle with the specified radius, centered at the specified
  * coordinates.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the circle center.
  * @param y0 y-coordinate of the circle center.
- * @param r Radius of the arc in pixels. Negative values are ignored.
+ * @param r Radius of the arc. Negative values are ignored.
  */
-void ssd1306_draw_circle(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                         int16_t r) {
+void ssd1306_draw_circle(struct ssd1306_display *display, int16_t x0,
+                         int16_t y0, int16_t r)
+{
     ssd1306_draw_arc(display, x0, y0, r, 0b1111);
 }
 
@@ -1699,23 +1730,23 @@ void ssd1306_draw_circle(struct ssd1306_display *display, int16_t x0, int16_t y0
  * @brief Draws a filled circle with the specified radius, centered at the
  * specified coordinates.
  * 
- * Notes:
+ * @note
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the circle center.
  * @param y0 y-coordinate of the circle center.
- * @param r Radius of the arc in pixels. Negative values are ignored.
+ * @param r Radius of the arc. Negative values are ignored.
  */
-void ssd1306_draw_circle_fill(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                              int16_t r) {
+void ssd1306_draw_circle_fill(struct ssd1306_display *display, int16_t x0,
+                              int16_t y0, int16_t r)
+{
     ssd1306_draw_arc_fill(display, x0, y0, r, 0b1111);
 }
 
@@ -1723,55 +1754,53 @@ void ssd1306_draw_circle_fill(struct ssd1306_display *display, int16_t x0, int16
  * @brief Draws a bitmap image starting from the specified coordinates and
  * extending down-right.
  * 
- * Notes:
- * 
- * - The only supported bitmap format is XMB. You can convert your images to
- * XBM by using a free tool such as "GIMP" or by using a website (search for
- * "Image to XBM converter"). Make sure to change the array so its specifiers
- * are "const uint8_t..." so the array stays in flash memory and you don't
- * get any compiler warnings.
+ * @note
+ * - XBM is the only supported bitmap format. You can convert your images to XBM
+ * by using a free tool such as GIMP or by using a website (search for "Image
+ * to XBM converter").
  * 
  * - Most XBM converters use a brightness threshold of 50% when converting
  * images to binary. This doesn't always result in the best-looking image. 
  * There are websites that allow you to set the threshold manually, such as
- * https://javl.github.io/image2cpp/. Don't forget to tick
- * "Invert image colors" and "Swap bits in byte" to match the XBM format.
+ * https://javl.github.io/image2cpp/. Don't forget to tick "Invert image colors"
+ * and "Swap bits in byte" to match the XBM format.
  * 
  * - Since XBM images are inverted by default, this function draws the inverse 
- * of the images to match the original. Setting the buffer mode to 'clear' will
+ * of the images to match the original. Setting the buffer mode to clear will
  * result in drawing the inverse of the ORIGINAL image.
  * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x0 x-coordinate of the starting point.
  * @param y0 y-coordinate of the starting point.
  * @param width Width of the image in pixels. The value MUST match the bitmap
  * width, or the drawing may get corrupted and random parts of the memory may
- * be accessed. For example, for an image with a resolution of "60x40", the
+ * be accessed. For example, for an image with a resolution of 60x40, the
  * width value should be '60'.
  * @param height Height of the image in pixels. The value MUST match the bitmap
  * height, or the drawing may get corrupted and random parts of the memory may
- * be accessed. For example, for an image with a resolution of "60x40", the
+ * be accessed. For example, for an image with a resolution of 60x40, the
  * height value should be '40'.
- * @param bmp Pointer to an XBM array.
+ * @param bitmap Pointer to the bitmap array.
  * @param has_bg 'true' to overwrite the contents in the background; 'false' to
  * draw transparent.
  */
-void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                         const uint8_t *bmp, uint16_t width, uint16_t height,
-                         bool has_bg) {
+void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0,
+                         int16_t y0, const uint8_t *bitmap, uint16_t width,
+                         uint16_t height, bool has_bg)
+{
     uint8_t pixels;
     for (int16_t h = 0; h < height; h++) {
         for (int16_t w = 0; w < width; w++) {
             // Read the next byte every 8 pixels
             if (!((uint8_t)w & 7)) {
-                pixels = *bmp;
-                bmp++;
+                pixels = *bitmap;
+                bitmap++;
             }
 
             // Draw the pixel (XBM images are inverted)
@@ -1789,35 +1818,35 @@ void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0, int16_t y0
 }
 
 /**
- * @brief Draws a character at the current cursor position.
+ * @brief Draws a character at the current cursor coordinates.
  * 
- * Notes:
+ * @note
+ * - Nothing will be drawn if the display isn't setup with a font. Fonts can be
+ * assigned by calling ssd1306_set_font().
  * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
+ * - The cursor coordinates can be set by calling ssd1306_set_cursor().
  * 
- * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
- * 
- * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
- * scaled by default).
+ * - Font characters can be scaled by calling ssd1306_set_font_scale().
  * 
  * - If the current font doesn't support the character, it'll be drawn as a '?'.
  * 
- * - '\\n' and '\\r' are the only special characters supported outside of the
- * valid font characters.
+ * - '\\n' and '\\r' are the only special non-printable characters supported.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
+ * - Automatically advances the cursor.
  * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Clears the pixels instead if the buffer is in clear mode.
+ * 
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param c Character to be drawn.
  */
-void ssd1306_draw_char(struct ssd1306_display *display, char c) {
+void ssd1306_draw_char(struct ssd1306_display *display, char c)
+{
     // If there is no font
     if (display->font == NULL) {
         return;
@@ -1849,32 +1878,33 @@ void ssd1306_draw_char(struct ssd1306_display *display, char c) {
 }
 
 /**
- * @brief Draws a custom character at the current cursor position.
+ * @brief Draws a custom character at the current cursor coordinates.
  * 
- * Notes:
+ * @note
+ * - The cursor coordinates can be set by calling ssd1306_set_cursor().
  * 
- * - To create a custom character, follow the documentation in the library
- * GitHub page https://github.com/Microesque/SSD1306_Library .
+ * - Font characters can be scaled by calling ssd1306_set_font_scale().
  * 
- * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
+ * - If the current font doesn't support the character, it'll be drawn as a '?'.
  * 
- * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
- * scaled by default).
+ * - '\\n' and '\\r' are the only special non-printable characters supported.
  * 
- * - Draws the character even the display isn't setup with a font.
+ * - Automatically advances the cursor.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param c Pointer to an 'SSD1306_CustomChar' structure.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param c Character to be drawn.
  */
-void ssd1306_draw_char_custom(struct ssd1306_display *display, const struct ssd1306_custom_char *c) {
+void ssd1306_draw_char_custom(struct ssd1306_display *display,
+                              const struct ssd1306_custom_char *c)
+{
     h_draw_char(display,
                 c->bitmap,
                 c->width,
@@ -1885,70 +1915,66 @@ void ssd1306_draw_char_custom(struct ssd1306_display *display, const struct ssd1
 }
 
 /**
- * @brief Draws a string at the current cursor position.
+ * @brief Draws a string at the current cursor coordinates.
  * 
- * Notes:
+ * @note
+ * - Expects the string to be null terminated!
  * 
- * - Expects the string to be null-terminated!
+ * - Nothing will be drawn if the display isn't setup with a font. Fonts can be
+ * assigned by calling ssd1306_set_font().
  * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
+ * - The cursor coordinates can be set by calling ssd1306_set_cursor().
  * 
- * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
+ * - Font characters can be scaled by calling ssd1306_set_font_scale().
  * 
- * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
- * scaled by default).
+ * - If the current font doesn't support the character, it'll be drawn as a '?'.
  * 
- * - If the current font doesn't support any characters, they'll be drawn as a
- * '?'.
+ * - '\\n' and '\\r' are the only special non-printable characters supported.
  * 
- * - '\\n' and '\\r' are the only special characters supported outside of the
- * valid font characters.
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param str String to be drawn.
  */
-void ssd1306_draw_str(struct ssd1306_display *display, const char *str) {
+void ssd1306_draw_str(struct ssd1306_display *display, const char *str)
+{
     for (uint16_t i = 0; str[i] != '\0'; i++) {
         ssd1306_draw_char(display, str[i]);
     }
 }
 
 /**
- * @brief Draws a 32-bit number at the current cursor position.
+ * @brief Draws a 32-bit variable at the current cursor coordinates.
  * 
- * Notes:
+ * @note
+ * - Meant to be a lower memory alternative for ssd1306_draw_printf().
  * 
- * - Meant to be a lower memory alternative for 'SSD1306_draw_printf()'.
+ * - Nothing will be drawn if the display isn't setup with a font. Fonts can be
+ * assigned by calling ssd1306_set_font().
  * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
+ * - The cursor coordinates can be set by calling ssd1306_set_cursor().
  * 
- * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
+ * - Font characters can be scaled by calling ssd1306_set_font_scale().
  * 
- * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
- * scaled by default).
+  * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param num 32-bit number to be drawn.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param num 32-bit variable to be drawn.
  */
-void ssd1306_draw_int32(struct ssd1306_display *display, int32_t num) {
+void ssd1306_draw_int32(struct ssd1306_display *display, int32_t num)
+{
     // if the number is 0
     if (num == 0) {
         ssd1306_draw_char(display, '0');
@@ -1976,37 +2002,38 @@ void ssd1306_draw_int32(struct ssd1306_display *display, int32_t num) {
 }
 
 /**
- * @brief Draws a float point number at the current cursor position.
+ * @brief Draws a float point number at the current cursor coordinates.
  * 
  * Notes:
  * 
- * - Meant to be a lower memory alternative for 'SSD1306_draw_printf()'.
+ * - Meant to be a lower memory alternative for ssd1306_draw_printf().
  * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
- * 
- * - The integer part of the number must fit within a 'signed 32-bit' range, or
+ * - The integer part of the number must fit within a signed 32-bit range, or
  * the number will overflow! No such limit for the fractional part or the number
  * of digits shown.
  * 
- * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
+ * - Nothing will be drawn if the display isn't setup with a font. Fonts can be
+ * assigned by calling ssd1306_set_font().
  * 
- * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
- * scaled by default).
+ * - The cursor coordinates can be set by calling ssd1306_set_cursor().
  * 
- * - Clears the pixels instead if the buffer is in 'clear' mode.
+ * - Font characters can be scaled by calling ssd1306_set_font_scale().
  * 
- * - You can draw off-screen, but everything that's out of bounds will be
+  * - Clears the pixels instead if the buffer is in clear mode.
+ * 
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param num Float point number to be drawn.
  * @param digits Number of digits after the decimal point to be drawn.
  */
-void ssd1306_draw_float(struct ssd1306_display *display, float num, uint8_t digits) {
+void ssd1306_draw_float(struct ssd1306_display *display, float num,
+                        uint8_t digits)
+{
     // If the number is negative
     if (num < 0.0f) {
         ssd1306_draw_char(display, '-');
@@ -2029,43 +2056,41 @@ void ssd1306_draw_float(struct ssd1306_display *display, float num, uint8_t digi
 }
 
 /**
- * @brief Draws a formatted string at the current cursor position.
+ * @brief Draws a formatted string at the current cursor coordinates.
  * 
- * Notes:
+ * @note
+ * - The SD1306_PRINTF_CHAR_LIMIT macro in the header file determines how many
+ * character can be printed at a time.
  * 
- * - The 'SD1306_PRINTF_CHAR_LIMIT' macro in the header file determines how
- * many character can be printed at a time.
+ * - For lower memory alternatives, consider using ssd1306_draw_str(),
+ * ssd1306_draw_int32(), and ssd1306_draw_float() instead.
  * 
- * - For lower memory alternatives, consider using 'SSD1306_draw_str()',
- * 'SSD1306_draw_int32()', and 'SSD1306_draw_float()' instead.
+ * - Nothing will be drawn if the display isn't setup with a font. Fonts can be
+ * assigned by calling ssd1306_set_font().
  * 
- * - Nothing will be drawn if the display isn't setup with a font. You can set
- * a font by calling 'SSD1306_set_font()'.
+ * - The cursor coordinates can be set by calling ssd1306_set_cursor().
  * 
- * - Cursor position can be set by calling 'SSD1306_set_cursor()'.
+ * - Font characters can be scaled by calling ssd1306_set_font_scale().
  * 
- * - Font characters can be scaled by calling 'SSD1306_set_font_scale()' (not
- * scaled by default).
+ * - If the current font doesn't support the character, it'll be drawn as a '?'.
  * 
- * - If the current font doesn't support any characters, they'll be drawn as a
- * '?'.
+ * - '\\n' and '\\r' are the only special non-printable characters supported.
  * 
- * - '\\n' and '\\r' are the only special characters supported outside of the
- * valid font characters.
+ * - Clears the pixels instead if the buffer is in clear mode.
  * 
- * - Clears the pixels instead if the display is in 'clear' mode.
- * 
- * - You can draw off-screen, but everything that's out of bounds will be
+ * - Drawing off-screen is allowed, but pixels that are out of bounds will be
  * clipped.
  * 
  * - Draw functions don't update the display. Don't forget to call the
- * 'SSD1306_display_update()' to push the buffer onto the display.
+ * ssd1306_display_update() to push the buffer onto the display.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param format Format string.
  * @param ... Arguments for the format string.
  */
-void ssd1306_draw_printf(struct ssd1306_display *display, const char *format, ...) {
+void ssd1306_draw_printf(struct ssd1306_display *display, const char *format,
+                         ...)
+{
     char str[SD1306_PRINTF_CHAR_LIMIT];
     va_list args;
     va_start(args, format);
@@ -2090,79 +2115,68 @@ void ssd1306_draw_printf(struct ssd1306_display *display, const char *format, ..
 /**
  * @brief Changes the buffer mode of the display (draw/clear).
  * 
- * Notes:
+ * @note In draw mode, draw functions will turn the pixels on. In clear mode,
+ * draw functions will turn the pixels off instead.
  * 
- * - When set to 'draw', draw functions will turn the pixels on. When set to
- * 'clear', draw functions will turn the pixels off instead.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param mode Buffer mode to be set.
  */
-void ssd1306_set_buffer_mode(struct ssd1306_display *display, enum ssd1306_buffer_mode mode) {
+void ssd1306_set_buffer_mode(struct ssd1306_display *display,
+                             enum ssd1306_buffer_mode mode)
+{
     display->buffer_mode = mode;
 }
 
 /**
  * @brief Assigns a font to the display.
  * 
- * Notes:
+ * @note
+ * - The specified font will be used for the subsequent character drawings.
  * 
- * - The font will be used for the subsequent characters drawn onto the display.
- * 
- * - This library supports 'GFXfont' font types from the "Adafruit-GFX-Library"
- * on GitHub.
+ * - The only supported font format is "GFXfont" from the "Adafruit-GFX-Library"
+ * on GitHub (requires minor conversions).
  * 
  * - GitHub link: https://github.com/adafruit/Adafruit-GFX-Library/
  * 
- * - Set to 'NULL' for no font.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param font Font to be assigned to the display.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param font Font to be assigned to the display. Pass NULL for no font.
  */
-void ssd1306_set_font(struct ssd1306_display *display, const struct ssd1306_font *font) {
+void ssd1306_set_font(struct ssd1306_display *display,
+                      const struct ssd1306_font *font)
+{
     display->font = font;
 }
 
 /**
- * @brief Configures font scaling for the display.
+ * @brief Configures the font scaling for the display.
  * 
- * Notes:
+ * @note
+ * - The specified scaling will be used for the subsequent character drawings.
  * 
- * - The scaling will be used for the subsequent characters drawn onto the
- * display.
+ * - Scaling is linear (new size = original size x scale).
  * 
- * - Scaling is linear ('new size' = 'original size' x 'scale').
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param scale Number of times to magnify the font by.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param scale The scaling factor. Can't be negative.
  */
-void ssd1306_set_font_scale(struct ssd1306_display *display, uint8_t scale) {
+void ssd1306_set_font_scale(struct ssd1306_display *display, uint8_t scale)
+{
     display->font_scale = scale;
 }
 
 /**
- * @brief Sets the cursor to the specified coordinates. 
+ * @brief Places the cursor at the specified coordinates. 
  * 
- * Notes:
+ * @note The cursor location represents the starting point for the subsequent
+ * character to be drawn. This point is typically the bottom-left corner of the
+ * character; but this isn't exact, as the font can define offsets in any
+ * direction.
  * 
- * - The cursor location represents the starting point for the subsequent
- * characters to be drawn onto the display.
- * 
- * - The starting point approximately represents the bottom-left of the
- * character drawing. This isn't exact, as the drawn characters may extend
- * couple pixels in any direction depending on the font.
- * 
- * - Cursor is automatically incremented on each character draw by the amount
- * specified by the font.
- * 
- * - Cursor movement of special characters like '\\n' and '\\r' are handled
- * automatically.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @param x x-coordinate of the cursor.
- * @param y y-coordinate of the cursor.
+ * @param display Pointer to the ssd1306_display structure.
+ * @param x x-coordinate for the cursor.
+ * @param y y-coordinate for the cursor.
  */
-void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x, int16_t y) {
+void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x, int16_t y)
+{
     display->cursor_x0 = x;
     display->cursor_x = x;
     display->cursor_y = y;
@@ -2184,89 +2198,83 @@ void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x, int16_t y) {
 /**
  * @brief Returns the assigned I2C address of the display.
  * 
- * Notes:
- * 
- * - If the 'SSD1306_init()' was never called with the given structure, the
- * return value will be random.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @return The assigned I2C address of the display.
+ * @param display Pointer to the ssd1306_display structure.
+ * @return The assigned I2C address of the display. If ssd1306_init() hasn't
+ * been called for the specified structure, the return value will be undefined.
  */
-uint8_t ssd1306_get_display_address(struct ssd1306_display *display) {
+uint8_t ssd1306_get_display_address(struct ssd1306_display *display)
+{
     return display->I2C_address;
 }
 
 /**
- * @brief Returns the assigned display type of the display ("128x32" or
- * "128x64").
+ * @brief Returns the assigned display type of the display (128x32 or 128x64).
  * 
- * Notes:
- * 
- * - If the 'SSD1306_init()' was never called with the given structure, the
- * return value will be random.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @return The assigned display type of the display ("128x32" or "128x64").
+ * @param display Pointer to the ssd1306_display structure.
+ * @return The assigned display type of the display (128x32 or 128x64). If
+ * ssd1306_init() hasn't been called for the specified structure, the return
+ * value will be undefined.
  */
-enum ssd1306_display_type ssd1306_get_display_type(struct ssd1306_display *display) {
+enum ssd1306_display_type ssd1306_get_display_type(
+                                                struct ssd1306_display *display)
+{
     return display->display_type;
 }
 
 /**
  * @brief Returns the current buffer mode of the display (draw/clear).
  * 
- * Notes:
+ * @note The buffer mode can be set by calling ssd1306_set_buffer_mode().
  * 
- * - Buffer mode can be set by calling 'SSD1306_set_buffer_mode()'.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @return The current buffer mode of the display (draw/clear).
  */
-enum ssd1306_buffer_mode ssd1306_get_buffer_mode(struct ssd1306_display *display) {
+enum ssd1306_buffer_mode ssd1306_get_buffer_mode(
+                                                struct ssd1306_display *display)
+{
     return display->buffer_mode;
 }
 
 /**
- * @brief Returns the current font of the display.
+ * @brief Returns the current font assigned to the display.
  * 
- * Notes:
+ * @note Fonts can be assigned by calling ssd1306_set_font().
  * 
- * - Font can be set by calling 'SSD1306_set_font()'.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @return The current font of the display. Returns 'NULL' if there's no font.
+ * @param display Pointer to the ssd1306_display structure.
+ * @return The current font assigned to the display. Returns NULL if no font is
+ * assigned.
  */
-const struct ssd1306_font *ssd1306_get_font(struct ssd1306_display *display) {
+const struct ssd1306_font *ssd1306_get_font(struct ssd1306_display *display)
+{
     return display->font;
 }
 
 /**
  * @brief Returns the current font scale of the display.
  * 
- * Notes:
+ * @note The font scale can be set by calling ssd1306_set_font_scale().
  * 
- * - Font scale can be set by calling 'SSD1306_set_font_scale()'.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @return The current font scale of the display.
  */
-uint8_t ssd1306_get_font_scale(struct ssd1306_display *display) {
+uint8_t ssd1306_get_font_scale(struct ssd1306_display *display)
+{
     return display->font_scale;
 }
 
 /**
  * @brief Returns the coordinates of the current cursor location.
  * 
- * Notes:
+ * @note The cursor location can be set by calling ssd1306_set_cursor().
  * 
- * - Cursor location can be set by calling 'SSD1306_set_cursor()'.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @param display Pointer to the ssd1306_display structure.
  * @param x Pointer where the current x-coordinate will be placed.
  * @param y Pointer where the current y-coordinate will be placed.
- * @return The x-coordinate for after a carriage return.
+ * @return The x-coordinate where the cursor would move after a carriage return.
  */
-int16_t ssd1306_get_cursor(struct ssd1306_display *display, int16_t *x, int16_t *y) {
+int16_t ssd1306_get_cursor(struct ssd1306_display *display, int16_t *x,
+                           int16_t *y)
+{
     *x = display->cursor_x;
     *y = display->cursor_y;
     return display->cursor_x0;
@@ -2275,28 +2283,29 @@ int16_t ssd1306_get_cursor(struct ssd1306_display *display, int16_t *x, int16_t 
 /**
  * @brief Returns a pointer to the display buffer.
  * 
- * Notes:
- * 
- * - If the 'SSD1306_init()' was never called with the given structure, the
- * return value will be random.
- * 
- * @param display Pointer to an 'SSD1306_T' structure.
- * @return Pointer to the display buffer.
+ * @param display Pointer to the ssd1306_display structure.
+ * @return Pointer to the display buffer. If ssd1306_init() hasn't been called
+ * for the specified structure, the return value will be undefined.
  */
-uint8_t *sd1306_get_buffer(struct ssd1306_display *display) {
+uint8_t *sd1306_get_buffer(struct ssd1306_display *display)
+{
     return display->buffer;
 }
 
 /**
- * @brief Returns the value of the specified pixel.
+ * @brief Returns the value of the specified pixel in the buffer.
  * 
- * @param display Pointer to an 'SSD1306_T' structure.
+ * @note The pixel value is from the buffer, not the display.
+ * 
+ * @param display Pointer to the ssd1306_display structure.
  * @param x x-coordinate of the pixel.
  * @param y y-coordinate of the pixel.
  * @return The value of the specified pixel ('0' or '1'). Coordinates that are
  * out of bounds will return '0' as well.
  */
-uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {
+uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x,
+                                 int16_t y)
+{
     // Return 0 if out of bounds
     if (x < 0) {return 0;}
     if (y < 0) {return 0;}

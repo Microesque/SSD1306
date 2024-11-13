@@ -236,84 +236,113 @@
     /*-------------------------- Available Functions -------------------------*/
     /*------------------------------------------------------------------------*/
     
-    void ssd1306_init(struct ssd1306_display *display,
-                      uint8_t I2C_address,
-                      void (*I2C_start)(void),
-                      uint8_t (*I2C_write)(uint8_t),
+    void ssd1306_init(struct ssd1306_display *display, uint8_t I2C_address,
+                      void (*I2C_start)(void), uint8_t (*I2C_write)(uint8_t),
                       void (*I2C_stop)(void),
-                      enum ssd1306_display_type display_type,
-                      uint8_t *buffer);
+                      enum ssd1306_display_type display_type, uint8_t *buffer);
     void ssd1306_reinit(struct ssd1306_display *display);
     
+    // ----- Display Functions -----
+
     void ssd1306_display_update(struct ssd1306_display *display);
-    void ssd1306_display_brightness(struct ssd1306_display *display, uint8_t brightness);
-    void ssd1306_display_enable(struct ssd1306_display *display, bool is_enabled);
-    void ssd1306_display_fully_on(struct ssd1306_display *display, bool is_enabled);
-    void ssd1306_display_inverse(struct ssd1306_display *display, bool is_enabled);
-    void ssd1306_display_mirror_h(struct ssd1306_display *display, bool is_enabled);
-    void ssd1306_display_mirror_v(struct ssd1306_display *display, bool is_enabled);
-    void ssd1306_display_scroll_enable(struct ssd1306_display *display, bool is_left,
-                                       bool is_diagonal, uint8_t interval);
+    void ssd1306_display_brightness(struct ssd1306_display *display,
+                                    uint8_t brightness);
+    void ssd1306_display_enable(struct ssd1306_display *display,
+                                bool is_enabled);
+    void ssd1306_display_fully_on(struct ssd1306_display *display,
+                                  bool is_enabled);
+    void ssd1306_display_inverse(struct ssd1306_display *display,
+                                 bool is_enabled);
+    void ssd1306_display_mirror_h(struct ssd1306_display *display,
+                                  bool is_enabled);
+    void ssd1306_display_mirror_v(struct ssd1306_display *display,
+                                  bool is_enabled);
+    void ssd1306_display_scroll_enable(struct ssd1306_display *display,
+                                       bool is_left, bool is_diagonal,
+                                       uint8_t interval);
     void ssd1306_display_scroll_disable(struct ssd1306_display *display);
-    
+
+    // ----- Draw Functions -----
+
     void ssd1306_draw_clear(struct ssd1306_display *display);
     void ssd1306_draw_fill(struct ssd1306_display *display);
-    void ssd1306_draw_shift_right(struct ssd1306_display *display, bool is_rotated);
-    void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated);
-    void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated);
-    void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated);
-    void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y);
-    void ssd1306_draw_line_h(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                             int16_t width);
-    void ssd1306_draw_line_v(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                             int16_t height);
-    void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                           int16_t x1, int16_t y1);
-    void ssd1306_draw_triangle(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                               int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-    void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                                    int16_t x1, int16_t y1, int16_t x2,
-                                    int16_t y2);
-    void ssd1306_draw_rect(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                           int16_t width, int16_t height);
-    void ssd1306_draw_rect_fill(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                                int16_t width, int16_t height);
-    void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                                 int16_t width, int16_t height, int16_t r);
-    void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0,
-                                      int16_t y0, int16_t width, int16_t height,
-                                      int16_t r);
-    void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0, int16_t r,
-                          uint8_t quadrant);
-    void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                               int16_t r, uint8_t quadrant);
-    void ssd1306_draw_circle(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                             int16_t r);
-    void ssd1306_draw_circle_fill(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                                  int16_t r);
-    void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0, int16_t y0,
-                             const uint8_t *bmp, uint16_t width,
+    void ssd1306_draw_shift_right(struct ssd1306_display *display,
+                                  bool is_rotated);
+    void ssd1306_draw_shift_left(struct ssd1306_display *display,
+                                 bool is_rotated);
+    void ssd1306_draw_shift_up(struct ssd1306_display *display,
+                               bool is_rotated);
+    void ssd1306_draw_shift_down(struct ssd1306_display *display,
+                                 bool is_rotated);
+    void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x,
+                            int16_t y);
+    void ssd1306_draw_line_h(struct ssd1306_display *display, int16_t x0,
+                             int16_t y0, int16_t width);
+    void ssd1306_draw_line_v(struct ssd1306_display *display, int16_t x0,
+                             int16_t y0, int16_t height);
+    void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0,
+                           int16_t y0, int16_t x1, int16_t y1);
+    void ssd1306_draw_triangle(struct ssd1306_display *display, int16_t x0,
+                               int16_t y0, int16_t x1, int16_t y1, int16_t x2,
+                               int16_t y2);
+    void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0,
+                                    int16_t y0, int16_t x1, int16_t y1,
+                                    int16_t x2, int16_t y2);
+    void ssd1306_draw_rect(struct ssd1306_display *display, int16_t x0,
+                           int16_t y0, int16_t width, int16_t height);
+    void ssd1306_draw_rect_fill(struct ssd1306_display *display, int16_t x0,
+                                int16_t y0, int16_t width, int16_t height);
+    void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0,
+                                 int16_t y0, int16_t width, int16_t height,
+                                 int16_t r);
+    void ssd1306_draw_rect_round_fill(struct ssd1306_display *display,
+                                      int16_t x0, int16_t y0, int16_t width,
+                                      int16_t height, int16_t r);
+    void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0,
+                          int16_t y0, int16_t r, uint8_t quadrants);
+    void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0,
+                               int16_t y0, int16_t r, uint8_t quadrants);
+    void ssd1306_draw_circle(struct ssd1306_display *display, int16_t x0,
+                             int16_t y0, int16_t r);
+    void ssd1306_draw_circle_fill(struct ssd1306_display *display, int16_t x0,
+                                  int16_t y0, int16_t r);
+    void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0,
+                             int16_t y0, const uint8_t *bitmap, uint16_t width,
                              uint16_t height, bool has_bg);
     void ssd1306_draw_char(struct ssd1306_display *display, char c);
     void ssd1306_draw_char_custom(struct ssd1306_display *display,
                                   const struct ssd1306_custom_char *c);
     void ssd1306_draw_str(struct ssd1306_display *display, const char *str);
     void ssd1306_draw_int32(struct ssd1306_display *display, int32_t num);
-    void ssd1306_draw_float(struct ssd1306_display *display, float num, uint8_t digits);
-    void ssd1306_draw_printf(struct ssd1306_display *display, const char *format, ...);
+    void ssd1306_draw_float(struct ssd1306_display *display, float num,
+                            uint8_t digits);
+    void ssd1306_draw_printf(struct ssd1306_display *display,
+                             const char *format, ...);
 
-    void ssd1306_set_buffer_mode(struct ssd1306_display *display, enum ssd1306_buffer_mode mode);
-    void ssd1306_set_font(struct ssd1306_display *display, const struct ssd1306_font *font);
+    // ----- Setter Functions -----
+
+    void ssd1306_set_buffer_mode(struct ssd1306_display *display,
+                                 enum ssd1306_buffer_mode mode);
+    void ssd1306_set_font(struct ssd1306_display *display,
+                          const struct ssd1306_font *font);
     void ssd1306_set_font_scale(struct ssd1306_display *display, uint8_t scale);
-    void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x, int16_t y);
+    void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x,
+                            int16_t y);
+
+    // ----- Getter Functions -----
 
     uint8_t ssd1306_get_display_address(struct ssd1306_display *display);
-    enum ssd1306_display_type ssd1306_get_display_type(struct ssd1306_display *display);
-    enum ssd1306_buffer_mode ssd1306_get_buffer_mode(struct ssd1306_display *display);
-    const struct ssd1306_font *ssd1306_get_font(struct ssd1306_display *display);
+    enum ssd1306_display_type ssd1306_get_display_type(
+                                               struct ssd1306_display *display);
+    enum ssd1306_buffer_mode ssd1306_get_buffer_mode(
+                                               struct ssd1306_display *display);
+    const struct ssd1306_font *ssd1306_get_font(
+                                               struct ssd1306_display *display);
     uint8_t ssd1306_get_font_scale(struct ssd1306_display *display);
-    int16_t ssd1306_get_cursor(struct ssd1306_display *display, int16_t *x, int16_t *y);
-    uint8_t *ssd1306_get_buffer(struct ssd1306_display *display);
-    uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x, int16_t y);
+    int16_t ssd1306_get_cursor(struct ssd1306_display *display, int16_t *x,
+                               int16_t *y);
+    uint8_t *sd1306_get_buffer(struct ssd1306_display *display);
+    uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x,
+                                     int16_t y);
 
 #endif
