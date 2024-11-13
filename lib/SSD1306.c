@@ -1821,16 +1821,13 @@ void ssd1306_draw_char(struct ssd1306_display* display, char c) {
         return;
     }
 
-    // Handle "line feed" separately
-    if (c == '\n') {
-        display->cursor_y += (display->font->y_advance * display->font_scale);
-        c = '\r';
-    }
-
-    // Handle "carriage return" separately
-    if (c == '\r') {
-        display->cursor_x = display->cursor_x0;
-        return;
+    // Handle "line feed" and "carriage return" separately
+    switch (c) {
+        case '\n':
+            display->cursor_y += (display->font->y_advance * display->font_scale);
+        case '\r':
+            display->cursor_x = display->cursor_x0;
+            return;
     }
 
     // Draw the invalid character as '?'
