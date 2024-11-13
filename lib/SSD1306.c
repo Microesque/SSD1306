@@ -69,10 +69,10 @@
 /*--------------------------- Library Enums/Macros ---------------------------*/
 /*----------------------------------------------------------------------------*/
 
-typedef enum {
+enum ssd1306_write_mode {
     SSD1306_WRITE_CMD,
     SSD1306_WRITE_DATA
-} SSD1306_WRITE_MODE;
+};
 
 #define SSD1306_PAGE0_OFFSET 0
 #define SSD1306_PAGE1_OFFSET 128
@@ -110,7 +110,7 @@ static const uint16_t SSD1306_PAGE_OFFSETS[] = {
  * @param data Pointer to an array of bytes to be sent to the display.
  * @param length Number of bytes from the data array to send.
  */
-static void h_display_write(SSD1306_T* display, SSD1306_WRITE_MODE write_mode,
+static void h_display_write(struct ssd1306_display* display, enum ssd1306_write_mode write_mode,
                             const uint8_t* data, uint16_t length) {
     uint8_t mode;
     if (write_mode) {
@@ -140,7 +140,7 @@ static void h_display_write(SSD1306_T* display, SSD1306_WRITE_MODE write_mode,
  * @param y_offset y-offset of the character.
  * @param x_advance x-advence of the character.
  */
-static void h_draw_char(SSD1306_T* display, const uint8_t* bmp_start,
+static void h_draw_char(struct ssd1306_display* display, const uint8_t* bmp_start,
                                             uint8_t width,
                                             uint8_t height,
                                             int8_t x_offset,
@@ -216,12 +216,12 @@ static void h_draw_char(SSD1306_T* display, const uint8_t* bmp_start,
  * display. Use the macros in the header file to declare an array with the
  * appropriate size according to your display type.
  */
-void ssd1306_init(SSD1306_T* display,
+void ssd1306_init(struct ssd1306_display* display,
                   uint8_t I2C_address,
                   void (*I2C_start)(void),
                   uint8_t (*I2C_write)(uint8_t),
                   void (*I2C_stop)(void),
-                  SSD1306_DisplayType display_type,
+                  enum ssd1306_display_type display_type,
                   uint8_t* buffer){
     // SSD1306_T structure initializations
     display->I2C_address = I2C_address;
@@ -252,7 +252,7 @@ void ssd1306_init(SSD1306_T* display,
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  */
-void ssd1306_reinit(SSD1306_T* display) {
+void ssd1306_reinit(struct ssd1306_display* display) {
     // Disable scrolls to avoid showing corrupted content
     ssd1306_display_scroll_disable(display);
 
@@ -363,7 +363,7 @@ void ssd1306_reinit(SSD1306_T* display) {
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  */
-void ssd1306_display_update(SSD1306_T* display) {
+void ssd1306_display_update(struct ssd1306_display* display) {
     uint16_t buffer_size;
     if (display->display_type) {
         buffer_size = SSD1306_BUFFER_SIZE_64;
@@ -381,7 +381,7 @@ void ssd1306_display_update(SSD1306_T* display) {
  * @param brightness Brightness level [0-255]. 255 corresponds to the maximum
  * brightness.
  */
-void ssd1306_display_brightness(SSD1306_T* display, uint8_t brightness) {
+void ssd1306_display_brightness(struct ssd1306_display* display, uint8_t brightness) {
     uint8_t cmd[] = {SSD1306_CMD_SET_CONTRAST_CONTROL, brightness};
     h_display_write(display, SSD1306_WRITE_CMD, cmd, 2);
 }
@@ -393,7 +393,7 @@ void ssd1306_display_brightness(SSD1306_T* display, uint8_t brightness) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
-void ssd1306_display_enable(SSD1306_T* display, bool is_enabled) {
+void ssd1306_display_enable(struct ssd1306_display* display, bool is_enabled) {
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_DISPLAY_ON;
@@ -411,7 +411,7 @@ void ssd1306_display_enable(SSD1306_T* display, bool is_enabled) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
-void ssd1306_display_fully_on(SSD1306_T* display, bool is_enabled) {
+void ssd1306_display_fully_on(struct ssd1306_display* display, bool is_enabled) {
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_ENTIRE_DISPLAY_ON_ENABLED;
@@ -429,7 +429,7 @@ void ssd1306_display_fully_on(SSD1306_T* display, bool is_enabled) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
-void ssd1306_display_inverse(SSD1306_T* display, bool is_enabled) {
+void ssd1306_display_inverse(struct ssd1306_display* display, bool is_enabled) {
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_INVERSE_ENABLED;
@@ -447,7 +447,7 @@ void ssd1306_display_inverse(SSD1306_T* display, bool is_enabled) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
-void ssd1306_display_mirror_h(SSD1306_T* display, bool is_enabled) {
+void ssd1306_display_mirror_h(struct ssd1306_display* display, bool is_enabled) {
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_SEGMENT_REMAP_ENABLED;
@@ -468,7 +468,7 @@ void ssd1306_display_mirror_h(SSD1306_T* display, bool is_enabled) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
-void ssd1306_display_mirror_v(SSD1306_T* display, bool is_enabled) {
+void ssd1306_display_mirror_v(struct ssd1306_display* display, bool is_enabled) {
     uint8_t cmd;
     if (is_enabled) {
         cmd = SSD1306_CMD_SCAN_REMAP_ENABLED;
@@ -518,7 +518,7 @@ void ssd1306_display_mirror_v(SSD1306_T* display, bool is_enabled) {
  * 
  *  - 7 -> 2 frames
  */
-void ssd1306_display_scroll_enable(SSD1306_T* display, bool is_left,
+void ssd1306_display_scroll_enable(struct ssd1306_display* display, bool is_left,
                                    bool is_diagonal, uint8_t interval) {
     // Disable scrolling first (datasheet p44)
     ssd1306_display_scroll_disable(display);
@@ -575,7 +575,7 @@ void ssd1306_display_scroll_enable(SSD1306_T* display, bool is_left,
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  */
-void ssd1306_display_scroll_disable(SSD1306_T* display) {
+void ssd1306_display_scroll_disable(struct ssd1306_display* display) {
     uint8_t cmd = SSD1306_CMD_SCROLL_DISABLE;
     h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
     
@@ -608,7 +608,7 @@ void ssd1306_display_scroll_disable(SSD1306_T* display) {
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  */
-void ssd1306_draw_clear(SSD1306_T* display) {
+void ssd1306_draw_clear(struct ssd1306_display* display) {
     uint16_t buffer_size;
     if (display->display_type) {
         buffer_size = SSD1306_BUFFER_SIZE_64;
@@ -633,7 +633,7 @@ void ssd1306_draw_clear(SSD1306_T* display) {
  * 
  * @param display Pointer to an 'SSD1306_T' structure.
  */
-void ssd1306_draw_fill(SSD1306_T* display) {
+void ssd1306_draw_fill(struct ssd1306_display* display) {
     uint16_t buffer_size;
     if (display->display_type) {
         buffer_size = SSD1306_BUFFER_SIZE_64;
@@ -661,7 +661,7 @@ void ssd1306_draw_fill(SSD1306_T* display) {
  * shift off screen are clipped. The value for the new pixels that enter the
  * screen is determined by the buffer mode.
  */
-void ssd1306_draw_shift_right(SSD1306_T* display, bool is_rotated) {
+void ssd1306_draw_shift_right(struct ssd1306_display* display, bool is_rotated) {
     uint8_t page_last;
     if (display->display_type) {
         page_last = 7;
@@ -711,7 +711,7 @@ void ssd1306_draw_shift_right(SSD1306_T* display, bool is_rotated) {
  * shift off screen are clipped. The value for the new pixels that enter the
  * screen is determined by the buffer mode.
  */
-void ssd1306_draw_shift_left(SSD1306_T* display, bool is_rotated) {
+void ssd1306_draw_shift_left(struct ssd1306_display* display, bool is_rotated) {
     uint8_t page_last;
     if (display->display_type) {
         page_last = 7;
@@ -760,7 +760,7 @@ void ssd1306_draw_shift_left(SSD1306_T* display, bool is_rotated) {
  * shift off screen are clipped. The value for the new pixels that enter the
  * screen is determined by the buffer mode.
  */
-void ssd1306_draw_shift_up(SSD1306_T* display, bool is_rotated) {
+void ssd1306_draw_shift_up(struct ssd1306_display* display, bool is_rotated) {
     uint8_t page_last;
     if (display->display_type) {
         page_last = 7;
@@ -831,7 +831,7 @@ void ssd1306_draw_shift_up(SSD1306_T* display, bool is_rotated) {
  * shift off screen are clipped. The value for the new pixels that enter the
  * screen is determined by the buffer mode.
  */
-void ssd1306_draw_shift_down(SSD1306_T* display, bool is_rotated) {
+void ssd1306_draw_shift_down(struct ssd1306_display* display, bool is_rotated) {
     uint8_t page_last;
     if (display->display_type) {
         page_last = 7;
@@ -904,7 +904,7 @@ void ssd1306_draw_shift_down(SSD1306_T* display, bool is_rotated) {
  * @param x x-coordinate of the pixel. Any value out of bounds will be clipped.
  * @param y y-coordinate of the pixel. Any value out of bounds will be clipped.
  */
-void ssd1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y) {    
+void ssd1306_draw_pixel(struct ssd1306_display* display, int16_t x, int16_t y) {    
     // Clip the coordinates that are out of bounds
     if (x < 0) {return;}
     if (y < 0) {return;}
@@ -952,7 +952,7 @@ void ssd1306_draw_pixel(SSD1306_T* display, int16_t x, int16_t y) {
  * @param width Width of the line. A positive value extends the line to the
  * right, while a negative value extends it to the left.
  */
-void ssd1306_draw_line_h(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_line_h(struct ssd1306_display* display, int16_t x0, int16_t y0,
                          int16_t width) {
     int16_t xi;
     
@@ -992,7 +992,7 @@ void ssd1306_draw_line_h(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param height Height of the line. A positive value extends the line upward, 
  * while a negative value extends it downward.
  */
-void ssd1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_line_v(struct ssd1306_display* display, int16_t x0, int16_t y0,
                          int16_t height) {
     int16_t yi;
     
@@ -1031,7 +1031,7 @@ void ssd1306_draw_line_v(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param x1 x-coordinate of the ending point.
  * @param y1 y-coordinate of the ending point.
  */
-void ssd1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0, int16_t x1,
+void ssd1306_draw_line(struct ssd1306_display* display, int16_t x0, int16_t y0, int16_t x1,
                        int16_t y1) {
     int16_t dx, dy, D, yi, temp;
     uint8_t is_swapped;
@@ -1115,7 +1115,7 @@ void ssd1306_draw_line(SSD1306_T* display, int16_t x0, int16_t y0, int16_t x1,
  * @param x2 x-coordinate of point-2.
  * @param y2 y-coordinate of point-2.
  */
-void ssd1306_draw_triangle(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_triangle(struct ssd1306_display* display, int16_t x0, int16_t y0,
                            int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
     ssd1306_draw_line(display, x0, y0, x1, y1);
     ssd1306_draw_line(display, x1, y1, x2, y2);
@@ -1143,7 +1143,7 @@ void ssd1306_draw_triangle(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param x2 x-coordinate of point-2.
  * @param y2 y-coordinate of point-2.
  */
-void ssd1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_triangle_fill(struct ssd1306_display* display, int16_t x0, int16_t y0,
                                int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
     int16_t dx01, dy01, dx02, dy02, dx12, dy12;
     int16_t y, xa, xb, dxa, dxb, width;
@@ -1279,7 +1279,7 @@ void ssd1306_draw_triangle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param height Height of the rectangle. A positive value extends the rectangle
  * downward, while a negative value extends it upward.
  */
-void ssd1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_rect(struct ssd1306_display* display, int16_t x0, int16_t y0,
                        int16_t width, int16_t height) {
     // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
@@ -1323,7 +1323,7 @@ void ssd1306_draw_rect(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param height Height of the rectangle. A positive value extends the rectangle
  * downward, while a negative value extends it upward.
  */
-void ssd1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_rect_fill(struct ssd1306_display* display, int16_t x0, int16_t y0,
                             int16_t width, int16_t height) {
     // Shift the rectangle if width or height is negative
     if (width < 0) {
@@ -1367,7 +1367,7 @@ void ssd1306_draw_rect_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * be limited to the maximum radius possible. Passing zero or a negative value
  * will result in a normal rectangle.
  */
-void ssd1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_rect_round(struct ssd1306_display* display, int16_t x0, int16_t y0,
                              int16_t width, int16_t height, int16_t r) {
     // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
@@ -1437,7 +1437,7 @@ void ssd1306_draw_rect_round(SSD1306_T* display, int16_t x0, int16_t y0,
  * be limited to the maximum radius possible. Passing zero or a negative value
  * will result in a normal rectangle.
  */
-void ssd1306_draw_rect_round_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_rect_round_fill(struct ssd1306_display* display, int16_t x0, int16_t y0,
                                   int16_t width, int16_t height, int16_t r) {
     // Draw nothing if width or height is 0
     if (width == 0 || height == 0) {return;}
@@ -1515,7 +1515,7 @@ void ssd1306_draw_rect_round_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * the corresponding bits to enable drawing for those quadrants. For example,
  * '0b0101' enables drawing for quadrants 1 and 3.
  */
-void ssd1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
+void ssd1306_draw_arc(struct ssd1306_display* display, int16_t x0, int16_t y0, int16_t r,
                       uint8_t quadrant) {
     // Draw nothing if radius is 0
     if (r < 0) {return;}
@@ -1604,7 +1604,7 @@ void ssd1306_draw_arc(SSD1306_T* display, int16_t x0, int16_t y0, int16_t r,
  * the corresponding bits to enable drawing for those quadrants. For example,
  * '0b0101' enables drawing for quadrants 1 and 3.
  */
-void ssd1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_arc_fill(struct ssd1306_display* display, int16_t x0, int16_t y0,
                            int16_t r, uint8_t quadrant) {
     // Draw nothing if radius is 0
     if (r < 0) {return;}
@@ -1688,7 +1688,7 @@ void ssd1306_draw_arc_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param y0 y-coordinate of the circle center.
  * @param r Radius of the arc in pixels. Negative values are ignored.
  */
-void ssd1306_draw_circle(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_circle(struct ssd1306_display* display, int16_t x0, int16_t y0,
                          int16_t r) {
     ssd1306_draw_arc(display, x0, y0, r, 0b1111);
 }
@@ -1712,7 +1712,7 @@ void ssd1306_draw_circle(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param y0 y-coordinate of the circle center.
  * @param r Radius of the arc in pixels. Negative values are ignored.
  */
-void ssd1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_circle_fill(struct ssd1306_display* display, int16_t x0, int16_t y0,
                               int16_t r) {
     ssd1306_draw_arc_fill(display, x0, y0, r, 0b1111);
 }
@@ -1760,7 +1760,7 @@ void ssd1306_draw_circle_fill(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param has_bg 'true' to overwrite the contents in the background; 'false' to
  * draw transparent.
  */
-void ssd1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
+void ssd1306_draw_bitmap(struct ssd1306_display* display, int16_t x0, int16_t y0,
                          const uint8_t* bmp, uint16_t width, uint16_t height,
                          bool has_bg) {
     uint8_t pixels;
@@ -1815,7 +1815,7 @@ void ssd1306_draw_bitmap(SSD1306_T* display, int16_t x0, int16_t y0,
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param c Character to be drawn.
  */
-void ssd1306_draw_char(SSD1306_T* display, char c) {
+void ssd1306_draw_char(struct ssd1306_display* display, char c) {
     // If there is no font
     if (display->font == NULL) {
         return;
@@ -1839,7 +1839,7 @@ void ssd1306_draw_char(SSD1306_T* display, char c) {
     }
 
     // Draw the character
-    GFXglyph* glyph = &display->font->glyph[c - display->font->first];
+    struct ssd1306_glyph* glyph = &display->font->glyph[c - display->font->first];
     h_draw_char(display,
                 &display->font->bitmap[glyph->bitmap_offset],
                 glyph->width,
@@ -1875,7 +1875,7 @@ void ssd1306_draw_char(SSD1306_T* display, char c) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param c Pointer to an 'SSD1306_CustomChar' structure.
  */
-void ssd1306_draw_char_custom(SSD1306_T* display, const SSD1306_CustomChar* c) {
+void ssd1306_draw_char_custom(struct ssd1306_display* display, const struct ssd1306_custom_char* c) {
     h_draw_char(display,
                 c->bitmap,
                 c->width,
@@ -1917,7 +1917,7 @@ void ssd1306_draw_char_custom(SSD1306_T* display, const SSD1306_CustomChar* c) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param str String to be drawn.
  */
-void ssd1306_draw_str(SSD1306_T* display, const char* str) {
+void ssd1306_draw_str(struct ssd1306_display* display, const char* str) {
     for (uint16_t i = 0; str[i] != '\0'; i++) {
         ssd1306_draw_char(display, str[i]);
     }
@@ -1949,7 +1949,7 @@ void ssd1306_draw_str(SSD1306_T* display, const char* str) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param num 32-bit number to be drawn.
  */
-void ssd1306_draw_int32(SSD1306_T* display, int32_t num) {
+void ssd1306_draw_int32(struct ssd1306_display* display, int32_t num) {
     // if the number is 0
     if (num == 0) {
         ssd1306_draw_char(display, '0');
@@ -2007,7 +2007,7 @@ void ssd1306_draw_int32(SSD1306_T* display, int32_t num) {
  * @param num Float point number to be drawn.
  * @param digits Number of digits after the decimal point to be drawn.
  */
-void ssd1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
+void ssd1306_draw_float(struct ssd1306_display* display, float num, uint8_t digits) {
     // If the number is negative
     if (num < 0.0f) {
         ssd1306_draw_char(display, '-');
@@ -2066,7 +2066,7 @@ void ssd1306_draw_float(SSD1306_T* display, float num, uint8_t digits) {
  * @param format Format string.
  * @param ... Arguments for the format string.
  */
-void ssd1306_draw_printf(SSD1306_T* display, const char* format, ...) {
+void ssd1306_draw_printf(struct ssd1306_display* display, const char* format, ...) {
     char str[SD1306_PRINTF_CHAR_LIMIT];
     va_list args;
     va_start(args, format);
@@ -2099,7 +2099,7 @@ void ssd1306_draw_printf(SSD1306_T* display, const char* format, ...) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param mode Buffer mode to be set.
  */
-void ssd1306_set_buffer_mode(SSD1306_T* display, SSD1306_BufferMode mode) {
+void ssd1306_set_buffer_mode(struct ssd1306_display* display, enum ssd1306_buffer_mode mode) {
     display->buffer_mode = mode;
 }
 
@@ -2120,7 +2120,7 @@ void ssd1306_set_buffer_mode(SSD1306_T* display, SSD1306_BufferMode mode) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param font Font to be assigned to the display.
  */
-void ssd1306_set_font(SSD1306_T* display, const GFXfont* font) {
+void ssd1306_set_font(struct ssd1306_display* display, const struct ssd1306_font* font) {
     display->font = font;
 }
 
@@ -2137,7 +2137,7 @@ void ssd1306_set_font(SSD1306_T* display, const GFXfont* font) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @param scale Number of times to magnify the font by.
  */
-void ssd1306_set_font_scale(SSD1306_T* display, uint8_t scale) {
+void ssd1306_set_font_scale(struct ssd1306_display* display, uint8_t scale) {
     display->font_scale = scale;
 }
 
@@ -2163,7 +2163,7 @@ void ssd1306_set_font_scale(SSD1306_T* display, uint8_t scale) {
  * @param x x-coordinate of the cursor.
  * @param y y-coordinate of the cursor.
  */
-void ssd1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y) {
+void ssd1306_set_cursor(struct ssd1306_display* display, int16_t x, int16_t y) {
     display->cursor_x0 = x;
     display->cursor_x = x;
     display->cursor_y = y;
@@ -2193,7 +2193,7 @@ void ssd1306_set_cursor(SSD1306_T* display, int16_t x, int16_t y) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @return The assigned I2C address of the display.
  */
-uint8_t ssd1306_get_display_address(SSD1306_T* display) {
+uint8_t ssd1306_get_display_address(struct ssd1306_display* display) {
     return display->I2C_address;
 }
 
@@ -2209,7 +2209,7 @@ uint8_t ssd1306_get_display_address(SSD1306_T* display) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @return The assigned display type of the display ("128x32" or "128x64").
  */
-SSD1306_DisplayType ssd1306_get_display_type(SSD1306_T* display) {
+enum ssd1306_display_type ssd1306_get_display_type(struct ssd1306_display* display) {
     return display->display_type;
 }
 
@@ -2223,7 +2223,7 @@ SSD1306_DisplayType ssd1306_get_display_type(SSD1306_T* display) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @return The current buffer mode of the display (draw/clear).
  */
-SSD1306_BufferMode ssd1306_get_buffer_mode(SSD1306_T* display) {
+enum ssd1306_buffer_mode ssd1306_get_buffer_mode(struct ssd1306_display* display) {
     return display->buffer_mode;
 }
 
@@ -2237,7 +2237,7 @@ SSD1306_BufferMode ssd1306_get_buffer_mode(SSD1306_T* display) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @return The current font of the display. Returns 'NULL' if there's no font.
  */
-const GFXfont* ssd1306_get_font(SSD1306_T* display) {
+const struct ssd1306_font* ssd1306_get_font(struct ssd1306_display* display) {
     return display->font;
 }
 
@@ -2251,7 +2251,7 @@ const GFXfont* ssd1306_get_font(SSD1306_T* display) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @return The current font scale of the display.
  */
-uint8_t ssd1306_get_font_scale(SSD1306_T* display) {
+uint8_t ssd1306_get_font_scale(struct ssd1306_display* display) {
     return display->font_scale;
 }
 
@@ -2267,7 +2267,7 @@ uint8_t ssd1306_get_font_scale(SSD1306_T* display) {
  * @param y Pointer where the current y-coordinate will be placed.
  * @return The x-coordinate for after a carriage return.
  */
-int16_t ssd1306_get_cursor(SSD1306_T* display, int16_t* x, int16_t* y) {
+int16_t ssd1306_get_cursor(struct ssd1306_display* display, int16_t* x, int16_t* y) {
     *x = display->cursor_x;
     *y = display->cursor_y;
     return display->cursor_x0;
@@ -2284,7 +2284,7 @@ int16_t ssd1306_get_cursor(SSD1306_T* display, int16_t* x, int16_t* y) {
  * @param display Pointer to an 'SSD1306_T' structure.
  * @return Pointer to the display buffer.
  */
-uint8_t* ssd1306_get_buffer(SSD1306_T* display) {
+uint8_t* ssd1306_get_buffer(struct ssd1306_display* display) {
     return display->buffer;
 }
 
@@ -2297,7 +2297,7 @@ uint8_t* ssd1306_get_buffer(SSD1306_T* display) {
  * @return The value of the specified pixel ('0' or '1'). Coordinates that are
  * out of bounds will return '0' as well.
  */
-uint8_t ssd1306_get_buffer_pixel(SSD1306_T* display, int16_t x, int16_t y) {
+uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display* display, int16_t x, int16_t y) {
     // Return 0 if out of bounds
     if (x < 0) {return 0;}
     if (y < 0) {return 0;}
