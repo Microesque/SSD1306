@@ -1698,8 +1698,9 @@ void ssd1306_draw_char_custom(struct ssd1306_display *display,
  * @param str String to be drawn.
  */
 void ssd1306_draw_str(struct ssd1306_display *display, const char *str) {
-    for (uint16_t i = 0; str[i] != '\0'; i++) {
-        ssd1306_draw_char(display, str[i]);
+    while (*str != '\0') {
+        ssd1306_draw_char(display, *str);
+        str++;
     }
 }
 
