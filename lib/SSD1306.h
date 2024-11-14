@@ -59,13 +59,13 @@ enum ssd1306_display_type {
  * Buffer sizes required by the respective display types (128x32 or
  * 128x64).
  */
-#define SSD1306_BUFFER_SIZE_32 512 //
+#define SSD1306_BUFFER_SIZE_32 512 /**/
 #define SSD1306_BUFFER_SIZE_64 1024
 
 /*
  * Maximum coordinates for the respective display types (128x32 and 128x64).
  */
-#define SSD1306_X_MAX 127 //
+#define SSD1306_X_MAX 127 /**/
 #define SSD1306_Y_MAX_32 31
 #define SSD1306_Y_MAX_64 63
 
@@ -73,10 +73,10 @@ enum ssd1306_display_type {
  * Masks that can be OR'd to enable specific quadrants when drawing with
  * ssd1306_draw_arc() and ssd1306_draw_arc_fill().
  */
-#define SSD1306_ARC_QUAD1 0x1 // Mask to enable quadrant 1
-#define SSD1306_ARC_QUAD2 0x2 // Mask to enable quadrant 2
-#define SSD1306_ARC_QUAD3 0x4 // Mask to enable quadrant 3
-#define SSD1306_ARC_QUAD4 0x8 // Mask to enable quadrant 4
+#define SSD1306_ARC_QUAD1 0x1 /* Mask to enable quadrant 1 */
+#define SSD1306_ARC_QUAD2 0x2 /* Mask to enable quadrant 2 */
+#define SSD1306_ARC_QUAD3 0x4 /* Mask to enable quadrant 3 */
+#define SSD1306_ARC_QUAD4 0x8 /* Mask to enable quadrant 4 */
 
 /*----------------------------------------------------------------------------*/
 /*-------------------------------- Structures --------------------------------*/

@@ -36,19 +36,19 @@
 
 #define SSD1306_CONTROL_CMD 0x00
 #define SSD1306_CONTROL_DATA 0x40
-#define SSD1306_CMD_SET_VERTICAL_SCROLL_AREA 0xA3   // Follow by 2-byte setup
-#define SSD1306_CMD_SET_MUX_RATIO 0xA8              // Follow by 1-byte setup
-#define SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE 0x20 // Follow by 1-byte setup
-#define SSD1306_CMD_SET_COM_CONFIGURATION 0xDA      // Follow by 1-byte setup
-#define SSD1306_CMD_SET_COLUMN_ADDRESS 0x21         // Follow by 2-byte setup
-#define SSD1306_CMD_SET_PAGE_ADDRESS 0x22           // Follow by 2-byte setup
-#define SSD1306_CMD_SET_DIV_RATIO_AND_FREQ 0xD5     // Follow by 1-byte setup
-#define SSD1306_CMD_SET_CHARGE_PUMP 0x8D            // Follow by 1-byte setup
-#define SSD1306_CMD_SET_CONTRAST_CONTROL 0x81       // Follow by 1-byte setup
-#define SSD1306_CMD_SET_SCROLL_JUST_RIGHT 0x26      // Follow by 6-byte setup
-#define SSD1306_CMD_SET_SCROLL_JUST_LEFT 0x27       // Follow by 6-byte setup
-#define SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT 0x29  // Follow by 5-byte setup
-#define SSD1306_CMD_SET_SCROLL_DIAGONAL_LEFT 0x2A   // Follow by 5-byte setup
+#define SSD1306_CMD_SET_VERTICAL_SCROLL_AREA 0xA3
+#define SSD1306_CMD_SET_MUX_RATIO 0xA8
+#define SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE 0x20
+#define SSD1306_CMD_SET_COM_CONFIGURATION 0xDA
+#define SSD1306_CMD_SET_COLUMN_ADDRESS 0x21
+#define SSD1306_CMD_SET_PAGE_ADDRESS 0x22
+#define SSD1306_CMD_SET_DIV_RATIO_AND_FREQ 0xD5
+#define SSD1306_CMD_SET_CHARGE_PUMP 0x8D
+#define SSD1306_CMD_SET_CONTRAST_CONTROL 0x81
+#define SSD1306_CMD_SET_SCROLL_JUST_RIGHT 0x26
+#define SSD1306_CMD_SET_SCROLL_JUST_LEFT 0x27
+#define SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT 0x29
+#define SSD1306_CMD_SET_SCROLL_DIAGONAL_LEFT 0x2A
 #define SSD1306_CMD_DISPLAY_ON 0xAF
 #define SSD1306_CMD_DISPLAY_OFF 0xAE
 #define SSD1306_CMD_ENTIRE_DISPLAY_ON_ENABLED 0xA5
@@ -106,11 +106,11 @@ static void h_display_write(struct ssd1306_display *display,
                             enum ssd1306_write_mode write_mode,
                             const uint8_t *buffer, uint16_t length) {
     uint8_t mode;
-    if (write_mode) {
+    if (write_mode)
         mode = SSD1306_CONTROL_DATA;
-    } else {
+    else
         mode = SSD1306_CONTROL_CMD;
-    }
+
     display->I2C_start();
     display->I2C_write((uint8_t)(display->I2C_address << 1));
     display->I2C_write(mode);
@@ -148,20 +148,16 @@ static void h_display_write(struct ssd1306_display *display,
 static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
                         uint8_t width, uint8_t height, int8_t x_offset,
                         int8_t y_offset, uint8_t x_advance) {
-    // Draw the character (with scale in mind)
     uint8_t scale = display->font_scale;
     uint8_t pixels;
     uint8_t count = 8;
     for (uint8_t h = 0; h < height; h++) {
         for (uint8_t w = 0; w < width; w++) {
-            // Read the next byte every 8 pixels
             if (count == 8) {
                 count = 0;
                 pixels = *bitmap;
                 bitmap++;
             }
-
-            // Draw the next pixel
             if (pixels & 0x80) {
                 ssd1306_draw_rect_fill(
                     display, display->cursor_x + x_offset + (w * scale),
@@ -208,7 +204,6 @@ void ssd1306_init(struct ssd1306_display *display, uint8_t I2C_address,
                   void (*I2C_start)(void), uint8_t (*I2C_write)(uint8_t),
                   void (*I2C_stop)(void),
                   enum ssd1306_display_type display_type, uint8_t *buffer) {
-    // SSD1306_T structure initializations
     display->I2C_address = I2C_address;
     display->I2C_start = I2C_start;
     display->I2C_write = I2C_write;
@@ -216,7 +211,7 @@ void ssd1306_init(struct ssd1306_display *display, uint8_t I2C_address,
     display->display_type = display_type;
     display->buffer = buffer;
 
-    // Display initialization (rest of the structure is initialized here)
+    /* Rest of the structure is initialized here */
     ssd1306_reinit(display);
 }
 
@@ -237,78 +232,63 @@ void ssd1306_init(struct ssd1306_display *display, uint8_t I2C_address,
  * @param display Pointer to the ssd1306_display structure.
  */
 void ssd1306_reinit(struct ssd1306_display *display) {
-    // Disable scrolls to avoid showing corrupted content
+    /*
+     * Some commands are ommited here since their default state is the same as
+     * intended, and the library never changes them.
+     *
+     * The display functions are also called in case the user re-programs or
+     * re-inits the display.
+     */
+
+    /* Avoid corruption */
     ssd1306_display_scroll_disable(display);
 
-    // Disable display to avoid showing jittering
+    /* Avoid random flickering */
     ssd1306_display_enable(display, false);
 
-    /*
-    Initialize the display (from datasheet p28-32, p34-46, p64). Some commands
-    are ommited here since their default state is the same as intended, and the
-    library never changes them.
-     */
     uint8_t cmd_buffer[3];
-
-    // For "128x64" displays
     if (display->display_type) {
-        // Set page address (also resets the data address)
         cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
         cmd_buffer[1] = 0x00;
         cmd_buffer[2] = 0x07;
         h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
-    }
-    // For "128x32" displays
-    else {
-        // Set page address (also resets the data address)
+    } else {
         cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
         cmd_buffer[1] = 0x00;
         cmd_buffer[2] = 0x03;
         h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
 
-        // Change mux ratio (default is correct for 128x64)
         cmd_buffer[0] = SSD1306_CMD_SET_MUX_RATIO;
         cmd_buffer[1] = 0x1F;
         h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
-        // Change COM configuration (default is correct for 128x64)
         cmd_buffer[0] = SSD1306_CMD_SET_COM_CONFIGURATION;
         cmd_buffer[1] = 0x02;
         h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
-        // Change vertical scroll area for (default is correct for 128x64)
         cmd_buffer[0] = SSD1306_CMD_SET_VERTICAL_SCROLL_AREA;
         cmd_buffer[1] = 0x00;
         cmd_buffer[2] = 0x20;
         h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
     }
 
-    // Set column address (also resets the data address)
     cmd_buffer[0] = SSD1306_CMD_SET_COLUMN_ADDRESS;
     cmd_buffer[1] = 0x00;
     cmd_buffer[2] = 0x7F;
     h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
 
-    // Horizontal addressing mode
     cmd_buffer[0] = SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE;
     cmd_buffer[1] = 0x00;
     h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
-    // Div ratio min, freq max.
     cmd_buffer[0] = SSD1306_CMD_SET_DIV_RATIO_AND_FREQ;
     cmd_buffer[1] = 0xF0;
     h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
-    // Enable charge pump
     cmd_buffer[0] = SSD1306_CMD_SET_CHARGE_PUMP;
     cmd_buffer[1] = 0x14;
     h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
-/*
- * Initialize the defaults in case they were changed.
- * 'SSD1306_display_mirror_h()' updates the display, so no separate call
- * needed.
- */
 #if SSD1306_DEFAULT_CLEAR_BUFFER == true
     ssd1306_draw_clear(display);
 #endif
@@ -339,11 +319,10 @@ void ssd1306_reinit(struct ssd1306_display *display) {
  */
 void ssd1306_display_update(struct ssd1306_display *display) {
     uint16_t buffer_size;
-    if (display->display_type) {
+    if (display->display_type)
         buffer_size = SSD1306_BUFFER_SIZE_64;
-    } else {
+    else
         buffer_size = SSD1306_BUFFER_SIZE_32;
-    }
     h_display_write(display, SSD1306_WRITE_DATA, display->buffer, buffer_size);
 }
 
@@ -371,11 +350,10 @@ void ssd1306_display_brightness(struct ssd1306_display *display,
  */
 void ssd1306_display_enable(struct ssd1306_display *display, bool is_enabled) {
     uint8_t cmd;
-    if (is_enabled) {
+    if (is_enabled)
         cmd = SSD1306_CMD_DISPLAY_ON;
-    } else {
+    else
         cmd = SSD1306_CMD_DISPLAY_OFF;
-    }
     h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 }
 
@@ -391,11 +369,10 @@ void ssd1306_display_enable(struct ssd1306_display *display, bool is_enabled) {
 void ssd1306_display_fully_on(struct ssd1306_display *display,
                               bool is_enabled) {
     uint8_t cmd;
-    if (is_enabled) {
+    if (is_enabled)
         cmd = SSD1306_CMD_ENTIRE_DISPLAY_ON_ENABLED;
-    } else {
+    else
         cmd = SSD1306_CMD_ENTIRE_DISPLAY_ON_DISABLED;
-    }
     h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 }
 
@@ -410,11 +387,10 @@ void ssd1306_display_fully_on(struct ssd1306_display *display,
  */
 void ssd1306_display_inverse(struct ssd1306_display *display, bool is_enabled) {
     uint8_t cmd;
-    if (is_enabled) {
+    if (is_enabled)
         cmd = SSD1306_CMD_INVERSE_ENABLED;
-    } else {
+    else
         cmd = SSD1306_CMD_INVERSE_DISABLED;
-    }
     h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 }
 
@@ -429,14 +405,13 @@ void ssd1306_display_inverse(struct ssd1306_display *display, bool is_enabled) {
 void ssd1306_display_mirror_h(struct ssd1306_display *display,
                               bool is_enabled) {
     uint8_t cmd;
-    if (is_enabled) {
+    if (is_enabled)
         cmd = SSD1306_CMD_SEGMENT_REMAP_ENABLED;
-    } else {
+    else
         cmd = SSD1306_CMD_SEGMENT_REMAP_DISABLED;
-    }
     h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 
-    // Only effect subsequent data, so update the display.
+    /* Only effects subsequent data */
     ssd1306_display_update(display);
 }
 
@@ -451,11 +426,10 @@ void ssd1306_display_mirror_h(struct ssd1306_display *display,
 void ssd1306_display_mirror_v(struct ssd1306_display *display,
                               bool is_enabled) {
     uint8_t cmd;
-    if (is_enabled) {
+    if (is_enabled)
         cmd = SSD1306_CMD_SCAN_REMAP_ENABLED;
-    } else {
+    else
         cmd = SSD1306_CMD_SCAN_REMAP_DISABLED;
-    }
     h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 }
 
@@ -501,38 +475,35 @@ void ssd1306_display_mirror_v(struct ssd1306_display *display,
 void ssd1306_display_scroll_enable(struct ssd1306_display *display,
                                    bool is_left, bool is_diagonal,
                                    uint8_t interval) {
-    // Disable scrolling first (datasheet p44)
+    /* Datasheet p46 */
     ssd1306_display_scroll_disable(display);
 
     uint8_t cmd[8];
     uint8_t cmd_length;
 
-    // Assign the common command values
+    /* Common command values */
     cmd[1] = 0x00;
     cmd[2] = 0x00;
     cmd[3] = interval;
-    if (display->display_type) {
+    if (display->display_type)
         cmd[4] = 0x07;
-    } else {
+    else
         cmd[4] = 0x03;
-    }
 
-    // Choose the right command and send
+    /* Horizontal and diagonal scroll commands are separate */
     if (is_diagonal) {
-        if (is_left) {
+        if (is_left)
             cmd[0] = SSD1306_CMD_SET_SCROLL_DIAGONAL_LEFT;
-        } else {
+        else
             cmd[0] = SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT;
-        }
         cmd[5] = 0x01;
         cmd[6] = SSD1306_CMD_SCROLL_ENABLE;
         cmd_length = 7;
     } else {
-        if (is_left) {
+        if (is_left)
             cmd[0] = SSD1306_CMD_SET_SCROLL_JUST_LEFT;
-        } else {
+        else
             cmd[0] = SSD1306_CMD_SET_SCROLL_JUST_RIGHT;
-        }
         cmd[5] = 0x00;
         cmd[6] = 0xFF;
         cmd[7] = SSD1306_CMD_SCROLL_ENABLE;
@@ -555,7 +526,7 @@ void ssd1306_display_scroll_disable(struct ssd1306_display *display) {
     uint8_t cmd = SSD1306_CMD_SCROLL_DISABLE;
     h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
 
-    // Update the display (datasheet p36)
+    /* Datasheet p46 */
     ssd1306_display_update(display);
 }
 
@@ -576,11 +547,10 @@ void ssd1306_display_scroll_disable(struct ssd1306_display *display) {
  */
 void ssd1306_draw_clear(struct ssd1306_display *display) {
     uint16_t buffer_size;
-    if (display->display_type) {
+    if (display->display_type)
         buffer_size = SSD1306_BUFFER_SIZE_64;
-    } else {
+    else
         buffer_size = SSD1306_BUFFER_SIZE_32;
-    }
     for (uint16_t i = 0; i < buffer_size; i++) {
         display->buffer[i] = 0x00;
     }
@@ -599,11 +569,10 @@ void ssd1306_draw_clear(struct ssd1306_display *display) {
  */
 void ssd1306_draw_fill(struct ssd1306_display *display) {
     uint16_t buffer_size;
-    if (display->display_type) {
+    if (display->display_type)
         buffer_size = SSD1306_BUFFER_SIZE_64;
-    } else {
+    else
         buffer_size = SSD1306_BUFFER_SIZE_32;
-    }
     for (uint16_t i = 0; i < buffer_size; i++) {
         display->buffer[i] = 0xFF;
     }
@@ -625,33 +594,29 @@ void ssd1306_draw_fill(struct ssd1306_display *display) {
 void ssd1306_draw_shift_right(struct ssd1306_display *display,
                               bool is_rotated) {
     uint8_t page_last;
-    if (display->display_type) {
+    if (display->display_type)
         page_last = 7;
-    } else {
+    else
         page_last = 3;
-    }
 
     uint8_t temp;
     uint8_t *byte_ptr;
     for (uint8_t page = 0; page <= page_last; page++) {
         byte_ptr = &display->buffer[SSD1306_PAGE_OFFSETS[page]];
         byte_ptr += SSD1306_X_MAX;
-
-        // Shift each byte
         temp = *byte_ptr;
+
         for (uint8_t i = 0; i < SSD1306_X_MAX; i++) {
             *byte_ptr = *(byte_ptr - 1);
             byte_ptr--;
         }
 
-        // Handle the last byte
-        if (is_rotated) {
+        if (is_rotated)
             *byte_ptr = temp;
-        } else if (display->buffer_mode) {
+        else if (display->buffer_mode)
             *byte_ptr = 0x00;
-        } else {
+        else
             *byte_ptr = 0xFF;
-        }
     }
 }
 
@@ -670,32 +635,28 @@ void ssd1306_draw_shift_right(struct ssd1306_display *display,
  */
 void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated) {
     uint8_t page_last;
-    if (display->display_type) {
+    if (display->display_type)
         page_last = 7;
-    } else {
+    else
         page_last = 3;
-    }
 
     uint8_t temp;
     uint8_t *byte_ptr;
     for (uint8_t page = 0; page <= page_last; page++) {
         byte_ptr = &display->buffer[SSD1306_PAGE_OFFSETS[page]];
-
-        // Shift each byte
         temp = *byte_ptr;
+
         for (uint8_t i = 0; i < SSD1306_X_MAX; i++) {
             *byte_ptr = *(byte_ptr + 1);
             byte_ptr++;
         }
 
-        // Handle the last byte
-        if (is_rotated) {
+        if (is_rotated)
             *byte_ptr = temp;
-        } else if (display->buffer_mode) {
+        else if (display->buffer_mode)
             *byte_ptr = 0x00;
-        } else {
+        else
             *byte_ptr = 0xFF;
-        }
     }
 }
 
@@ -714,52 +675,41 @@ void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated) {
  */
 void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated) {
     uint8_t page_last;
-    if (display->display_type) {
+    if (display->display_type)
         page_last = 7;
-    } else {
+    else
         page_last = 3;
-    }
 
-    // Assign the top bit value if no rotation
     uint8_t very_top_bit;
     if (!is_rotated) {
-        if (display->buffer_mode) {
+        if (display->buffer_mode)
             very_top_bit = 0x00;
-        } else {
+        else
             very_top_bit = 0x80;
-        }
     }
 
-    // Shift each column
     uint8_t *byte_ptr;
     uint8_t *byte_next_ptr;
     uint8_t top_bit;
     for (uint8_t i = 0; i <= SSD1306_X_MAX; i++) {
-        // Start from the first page
         byte_ptr = &display->buffer[i];
 
-        // Save the top bit if rotated
         if (is_rotated) {
-            if (*byte_ptr & 1) {
+            if (*byte_ptr & 1)
                 very_top_bit = 0x80;
-            } else {
+            else
                 very_top_bit = 0x00;
-            }
         }
 
-        // Shift all pages except for the last one
         for (uint8_t page = 0; page < page_last; page++) {
             byte_next_ptr = byte_ptr + SSD1306_PAGE1_OFFSET;
-            if (*byte_next_ptr & 1) {
+            if (*byte_next_ptr & 1)
                 top_bit = 0x80;
-            } else {
+            else
                 top_bit = 0x00;
-            }
             *byte_ptr = (uint8_t)(*byte_ptr >> 1) + top_bit;
             byte_ptr = byte_next_ptr;
         }
-
-        // Shift the last page
         *byte_ptr = (uint8_t)(*byte_ptr >> 1) + very_top_bit;
     }
 }
@@ -779,52 +729,41 @@ void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated) {
  */
 void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated) {
     uint8_t page_last;
-    if (display->display_type) {
+    if (display->display_type)
         page_last = 7;
-    } else {
+    else
         page_last = 3;
-    }
 
-    // Assign the top bit value if no rotation
     uint8_t very_bottom_bit;
     if (!is_rotated) {
-        if (display->buffer_mode) {
+        if (display->buffer_mode)
             very_bottom_bit = 0;
-        } else {
+        else
             very_bottom_bit = 1;
-        }
     }
 
-    // Shift each column
     uint8_t *byte_ptr;
     uint8_t *byte_next_ptr;
     uint8_t bottom_bit;
     for (uint8_t i = 0; i <= SSD1306_X_MAX; i++) {
-        // Start from the last page
         byte_ptr = &display->buffer[i] + SSD1306_PAGE_OFFSETS[page_last];
 
-        // Save the top bit if rotated
         if (is_rotated) {
-            if (*byte_ptr & 0x80) {
+            if (*byte_ptr & 0x80)
                 very_bottom_bit = 1;
-            } else {
+            else
                 very_bottom_bit = 0;
-            }
         }
 
-        // Shift all pages except for the last one
         for (uint8_t page = 0; page < page_last; page++) {
             byte_next_ptr = byte_ptr - SSD1306_PAGE1_OFFSET;
-            if (*byte_next_ptr & 0x80) {
+            if (*byte_next_ptr & 0x80)
                 bottom_bit = 1;
-            } else {
+            else
                 bottom_bit = 0;
-            }
             *byte_ptr = (uint8_t)(*byte_ptr << 1) + bottom_bit;
             byte_ptr = byte_next_ptr;
         }
-
-        // Shift the last page
         *byte_ptr = (uint8_t)(*byte_ptr << 1) + very_bottom_bit;
     }
 }
@@ -846,39 +785,23 @@ void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated) {
  * @param y y-coordinate of the pixel. Any value out of bounds will be clipped.
  */
 void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {
-    // Clip the coordinates that are out of bounds
-    if (x < 0) {
+    if ((x < 0) || (y < 0) || (x > SSD1306_X_MAX))
         return;
-    }
-    if (y < 0) {
-        return;
-    }
-    if (x > SSD1306_X_MAX) {
-        return;
-    }
+
     if (display->display_type) {
-        if (y > SSD1306_Y_MAX_64) {
+        if (y > SSD1306_Y_MAX_64)
             return;
-        }
     } else {
-        if (y > SSD1306_Y_MAX_32) {
+        if (y > SSD1306_Y_MAX_32)
             return;
-        }
     }
 
-    uint16_t index;
-    uint8_t mask;
-
-    // Find the buffer index and its mask according to the given coordinates
-    index = SSD1306_PAGE_OFFSETS[y >> 3] + (uint16_t)x;
-    mask = (uint8_t)(1 << (y & 7));
-
-    // Change the pixel according to the current buffer mode
-    if (display->buffer_mode) {
+    uint16_t index = SSD1306_PAGE_OFFSETS[y >> 3] + (uint16_t)x;
+    uint8_t mask = (uint8_t)(1 << (y & 7));
+    if (display->buffer_mode)
         display->buffer[index] |= mask;
-    } else {
+    else
         display->buffer[index] &= ~mask;
-    }
 }
 
 /**
@@ -903,8 +826,6 @@ void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {
 void ssd1306_draw_line_h(struct ssd1306_display *display, int16_t x0,
                          int16_t y0, int16_t width) {
     int16_t xi;
-
-    // Change direction if width is negative
     if (width < 0) {
         width = -width;
         xi = -1;
@@ -912,7 +833,6 @@ void ssd1306_draw_line_h(struct ssd1306_display *display, int16_t x0,
         xi = 1;
     }
 
-    // Draw the line
     for (; width > 0; width--) {
         ssd1306_draw_pixel(display, x0, y0);
         x0 += xi;
@@ -941,8 +861,6 @@ void ssd1306_draw_line_h(struct ssd1306_display *display, int16_t x0,
 void ssd1306_draw_line_v(struct ssd1306_display *display, int16_t x0,
                          int16_t y0, int16_t height) {
     int16_t yi;
-
-    // Change direction if height is negative
     if (height < 0) {
         height = -height;
         yi = -1;
@@ -950,7 +868,6 @@ void ssd1306_draw_line_v(struct ssd1306_display *display, int16_t x0,
         yi = 1;
     }
 
-    // Draw the line
     for (; height > 0; height--) {
         ssd1306_draw_pixel(display, x0, y0);
         y0 += yi;
@@ -980,15 +897,13 @@ void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0, int16_t y0,
     int16_t dx, dy, D, yi, temp;
     uint8_t is_swapped;
 
-    // Swap coordinates if slope > 1 (compensated when drawing)
+    /* Swap coordinates if slope > 1 (compensated when drawing) */
     dx = x1 - x0;
     dy = y1 - y0;
-    if (dx < 0) {
+    if (dx < 0)
         dx = -dx;
-    }
-    if (dy < 0) {
+    if (dy < 0)
         dy = -dy;
-    }
     if (dy > dx) {
         temp = x0;
         x0 = y0;
@@ -1001,7 +916,7 @@ void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0, int16_t y0,
         is_swapped = false;
     }
 
-    // Make sure x0 < x1
+    /* Make sure x0 < x1 */
     if (x0 > x1) {
         temp = x0;
         x0 = x1;
@@ -1011,10 +926,10 @@ void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0, int16_t y0,
         y1 = temp;
     }
 
-    // Draw the line
+    /* Draw the line */
     dx = x1 - x0;
     dy = y1 - y0;
-    D = -((uint16_t)dx >> 1); // -dx/2 (in case not optimized, dx is always > 0)
+    D = -((uint16_t)dx >> 1); /* In case not optimized, dx is always > 0 */
     if (dy < 0) {
         yi = -1;
         dy = -dy;
@@ -1022,11 +937,10 @@ void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0, int16_t y0,
         yi = 1;
     }
     for (; x0 <= x1; x0++) {
-        if (is_swapped) {
+        if (is_swapped)
             ssd1306_draw_pixel(display, y0, x0);
-        } else {
+        else
             ssd1306_draw_pixel(display, x0, y0);
-        }
         D += dy;
         if (D > 0) {
             D -= dx;
@@ -1090,7 +1004,7 @@ void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0,
     int16_t y, xa, xb, dxa, dxb, width;
     int16_t temp;
 
-    // Sort the coordinates by y position
+    /* Sort the coordinates by y position */
     if (y0 > y1) {
         temp = y0;
         y0 = y1;
@@ -1116,9 +1030,11 @@ void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0,
         x1 = temp;
     }
 
-    // If all coordinates are on the same line (return to avoid /0)
+    /*
+     * Find the left most and right most coordinates
+     * If all coordinates are on the same line, return to avoid /0
+     */
     if (y0 == y2) {
-        // Find the left most and right most coordinates
         if (x0 < x1) {
             xa = x0;
             xb = x1;
@@ -1126,19 +1042,17 @@ void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0,
             xa = x1;
             xb = x0;
         }
-        if (x2 < xa) {
-            xa = x2;
-        }
-        if (x2 > xb) {
-            xb = x2;
-        }
 
-        // Draw the horizontal line
+        if (x2 < xa)
+            xa = x2;
+        if (x2 > xb)
+            xb = x2;
+
         ssd1306_draw_line_h(display, xa, y0, xb - xa + 1);
         return;
     }
 
-    // Initialize the delta variables
+    /* Initialize the deltas */
     dx01 = x1 - x0;
     dy01 = y1 - y0;
     dx02 = x2 - x0;
@@ -1146,51 +1060,47 @@ void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0,
     dx12 = x2 - x1;
     dy12 = y2 - y1;
 
-    // Draw the upper triangle (flat bottom)
-    // (if y0 == y1, loop is skipped so no /0)
-    // (if y1 == y2, draw the y1 line as well)
-    if (y1 == y2) {
+    /*
+     * Draw the upper triangle (flat bottom)
+     * (if y0 == y1, loop is skipped so no /0)
+     * (if y1 == y2, draw the y1 line as well)
+     */
+    if (y1 == y2)
         y1++;
-    }
     dxa = 0;
     dxb = 0;
     for (y = y0; y < y1; y++) {
-        // Interpolate x-coordinates for the current scanline
         xa = x0 + (dxa / dy01);
         xb = x0 + (dxb / dy02);
         dxa += dx01;
         dxb += dx02;
 
-        // Draw the horizontal line for the current scanline
         width = xb - xa;
-        if (width < 0) {
+        if (width < 0)
             width--;
-        } else {
+        else
             width++;
-        }
         ssd1306_draw_line_h(display, xa, y, width);
     }
 
-    // Draw the lower triangle (flat top)
-    // (if y1 == y2, line is already drawn above, so return)
-    if (y1 == y2) {
+    /*
+     * Draw the lower triangle (flat top)
+     * If y1 == y2, line is already drawn above, so return
+     */
+    if (y1 == y2)
         return;
-    }
     dxa = 0;
     for (; y <= y2; y++) {
-        // Interpolate x-coordinates for the current scanline
         xa = x1 + (dxa / dy12);
         xb = x0 + (dxb / dy02);
         dxa += dx12;
         dxb += dx02;
 
-        // Draw the horizontal line for the current scanline
         width = xb - xa;
-        if (width < 0) {
+        if (width < 0)
             width--;
-        } else {
+        else
             width++;
-        }
         ssd1306_draw_line_h(display, xa, y, width);
     }
 }
@@ -1218,12 +1128,9 @@ void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0,
  */
 void ssd1306_draw_rect(struct ssd1306_display *display, int16_t x0, int16_t y0,
                        int16_t width, int16_t height) {
-    // Draw nothing if width or height is 0
-    if (width == 0 || height == 0) {
+    if (width == 0 || height == 0)
         return;
-    }
 
-    // Shift the rectangle if width or height is negative
     if (width < 0) {
         width = -width;
         x0 -= (width - 1);
@@ -1232,8 +1139,6 @@ void ssd1306_draw_rect(struct ssd1306_display *display, int16_t x0, int16_t y0,
         height = -height;
         y0 -= (height - 1);
     }
-
-    // Draw the rectangle
     ssd1306_draw_line_h(display, x0, y0, width);
     ssd1306_draw_line_h(display, x0, y0 + height - 1, width);
     ssd1306_draw_line_v(display, x0, y0, height);
@@ -1263,7 +1168,6 @@ void ssd1306_draw_rect(struct ssd1306_display *display, int16_t x0, int16_t y0,
  */
 void ssd1306_draw_rect_fill(struct ssd1306_display *display, int16_t x0,
                             int16_t y0, int16_t width, int16_t height) {
-    // Shift the rectangle if width or height is negative
     if (width < 0) {
         width = -width;
         x0 -= (width - 1);
@@ -1273,7 +1177,6 @@ void ssd1306_draw_rect_fill(struct ssd1306_display *display, int16_t x0,
         y0 -= (height - 1);
     }
 
-    // Fill the rectangle
     while (height > 0) {
         height--;
         ssd1306_draw_line_h(display, x0, y0 + height, width);
@@ -1307,12 +1210,9 @@ void ssd1306_draw_rect_fill(struct ssd1306_display *display, int16_t x0,
 void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0,
                              int16_t y0, int16_t width, int16_t height,
                              int16_t r) {
-    // Draw nothing if width or height is 0
-    if (width == 0 || height == 0) {
+    if (width == 0 || height == 0)
         return;
-    }
 
-    // Shift the rectangle if width or height is negative
     if (width < 0) {
         width = -width;
         x0 -= (width - 1);
@@ -1322,20 +1222,17 @@ void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0,
         y0 -= (height - 1);
     }
 
-    // Limit the r
     int16_t r_max;
-    if (width < height) {
-        r_max = (int16_t)((uint16_t)width >> 1); // w/2 (in case not optimized)
-    } else {
-        r_max = (int16_t)((uint16_t)height >> 1); // h/2 (in case not optimized)
-    }
-    if (r < 0) {
-        r = 0;
-    } else if (r > r_max) {
-        r = r_max;
-    }
+    if (width < height)
+        r_max = (int16_t)((uint16_t)width >> 1); /* In case not optimized */
+    else
+        r_max = (int16_t)((uint16_t)height >> 1); /* In case not optimized */
 
-    // Draw the rectangle edges
+    if (r < 0)
+        r = 0;
+    else if (r > r_max)
+        r = r_max;
+
     int16_t width_h = width - r - r;
     int16_t height_v = height - r - r;
     ssd1306_draw_arc(display, x0 + width - r - 1, y0 + r, r, 0x01);
@@ -1343,7 +1240,6 @@ void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0,
     ssd1306_draw_arc(display, x0 + r, y0 + height - r - 1, r, 0x4);
     ssd1306_draw_arc(display, x0 + width - r - 1, y0 + height - r - 1, r, 0x8);
 
-    // Draw the rectangle lines
     ssd1306_draw_line_h(display, x0 + r, y0, width_h);
     ssd1306_draw_line_h(display, x0 + r, y0 + height - 1, width_h);
     ssd1306_draw_line_v(display, x0, y0 + r, height_v);
@@ -1377,12 +1273,9 @@ void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0,
 void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0,
                                   int16_t y0, int16_t width, int16_t height,
                                   int16_t r) {
-    // Draw nothing if width or height is 0
-    if (width == 0 || height == 0) {
+    if (width == 0 || height == 0)
         return;
-    }
 
-    // Shift the rectangle if width or height is negative
     if (width < 0) {
         width = -width;
         x0 -= (width - 1);
@@ -1392,12 +1285,11 @@ void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0,
         y0 -= (height - 1);
     }
 
-    // Limit the r
     int16_t r_max;
     if (width < height) {
-        r_max = (int16_t)((uint16_t)width >> 1); // w/2 (in case not optimized)
+        r_max = (int16_t)((uint16_t)width >> 1); /* In case not optimized */
     } else {
-        r_max = (int16_t)((uint16_t)height >> 1); // h/2 (in case not optimized)
+        r_max = (int16_t)((uint16_t)height >> 1); /* In case not optimized */
     }
     if (r < 0) {
         r = 0;
@@ -1405,7 +1297,6 @@ void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0,
         r = r_max;
     }
 
-    // Fill the rectangle edges
     int16_t width_h = width - r - r;
     int16_t height_v = height - r - r;
     ssd1306_draw_arc_fill(display, x0 + width - r - 1, y0 + r, r, 0x1);
@@ -1414,7 +1305,6 @@ void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0,
     ssd1306_draw_arc_fill(display, x0 + width - r - 1, y0 + height - r - 1, r,
                           0x8);
 
-    // Fill the rectangle
     for (int16_t i = 0; i <= r; i++) {
         ssd1306_draw_line_h(display, x0 + r, y0 + i, width_h);
     }
@@ -1451,36 +1341,29 @@ void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0,
  */
 void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0,
                       int16_t r, uint8_t quadrants) {
-    // Draw nothing if radius is 0
-    if (r < 0) {
+    if (r < 0)
         return;
-    }
 
-    // Draw the 4 way corner pixels
-    if (quadrants & 0b1100) {
+    if (quadrants & 0b1100)
         ssd1306_draw_pixel(display, x0, y0 + r);
-    }
-    if (quadrants & 0b0011) {
+    if (quadrants & 0b0011)
         ssd1306_draw_pixel(display, x0, y0 - r);
-    }
-    if (quadrants & 0b1001) {
+    if (quadrants & 0b1001)
         ssd1306_draw_pixel(display, x0 + r, y0);
-    }
-    if (quadrants & 0b0110) {
+    if (quadrants & 0b0110)
         ssd1306_draw_pixel(display, x0 - r, y0);
-    }
 
     int16_t f_middle, delta_e, delta_se, x, y;
     int16_t diff_1, diff_2;
 
-    // Initialize the middle point and delta values, start from (0, r)
-    f_middle = 1 - r; // Simplified from "5/4-r"
+    /* Initialize the middle point and delta values, start from (0, r) */
+    f_middle = 1 - r; /* Simplified from "5/4-r" */
     delta_e = 3;
     delta_se = -(r + r) + 5;
     x = 0;
     y = r;
 
-    // Iterate from the top of the circle to the x=y line
+    /* Iterate from the top of the circle to the x=y line */
     while (x < y) {
         if (f_middle < 0) {
             f_middle += delta_e;
@@ -1493,7 +1376,7 @@ void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0,
         delta_e += 2;
         x++;
 
-        // Draw the arcs using 8-way symmetry
+        /* Draw using 8-way symetry */
         diff_1 = y - x + 1;
         diff_2 = -y + x - 1;
         if (quadrants & 0b0001) {
@@ -1540,36 +1423,29 @@ void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0,
  */
 void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0,
                            int16_t y0, int16_t r, uint8_t quadrants) {
-    // Draw nothing if radius is 0
-    if (r < 0) {
+    if (r < 0)
         return;
-    }
 
-    // Draw the 4 way corner lines
-    if (quadrants & 0b1100) {
+    if (quadrants & 0b1100)
         ssd1306_draw_line_v(display, x0, y0, r + 1);
-    }
-    if (quadrants & 0b0011) {
+    if (quadrants & 0b0011)
         ssd1306_draw_line_v(display, x0, y0, -r - 1);
-    }
-    if (quadrants & 0b1001) {
+    if (quadrants & 0b1001)
         ssd1306_draw_line_h(display, x0, y0, r + 1);
-    }
-    if (quadrants & 0b0110) {
+    if (quadrants & 0b0110)
         ssd1306_draw_line_h(display, x0, y0, -r - 1);
-    }
 
     int16_t f_middle, delta_e, delta_se, x, y;
     int16_t diff_1, diff_2;
 
-    // Initialize the middle point and delta values, start from (0, r)
-    f_middle = 1 - r; // Simplified from "5/4-r"
+    /* Initialize the middle point and delta values, start from (0, r) */
+    f_middle = 1 - r; /* Simplified from "5/4-r" */
     delta_e = 3;
     delta_se = -(r + r) + 5;
     x = 0;
     y = r;
 
-    // Iterate from the top of the circle to the x=y line
+    /* Iterate from the top of the circle to the x=y line */
     while (x < y) {
         if (f_middle < 0) {
             f_middle += delta_e;
@@ -1582,7 +1458,7 @@ void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0,
         delta_e += 2;
         x++;
 
-        // Fill the arcs using 8-way symmetry
+        /* Draw using 8-way symetry */
         diff_1 = y - x + 1;
         diff_2 = -y + x - 1;
         if (quadrants & 0b0001) {
@@ -1696,13 +1572,11 @@ void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0,
     uint8_t pixels;
     for (int16_t h = 0; h < height; h++) {
         for (int16_t w = 0; w < width; w++) {
-            // Read the next byte every 8 pixels
             if (!((uint8_t)w & 7)) {
                 pixels = *bitmap;
                 bitmap++;
             }
 
-            // Draw the pixel (XBM images are inverted)
             if (!(pixels & 1)) {
                 ssd1306_draw_pixel(display, x0 + w, y0 + h);
             } else if (has_bg) {
@@ -1744,12 +1618,9 @@ void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0,
  * @param c Character to be drawn.
  */
 void ssd1306_draw_char(struct ssd1306_display *display, char c) {
-    // If there is no font
-    if (display->font == NULL) {
+    if (display->font == NULL)
         return;
-    }
 
-    // Handle "line feed" and "carriage return" separately
     switch (c) {
     case '\n':
         display->cursor_y += (display->font->y_advance * display->font_scale);
@@ -1758,14 +1629,11 @@ void ssd1306_draw_char(struct ssd1306_display *display, char c) {
         return;
     }
 
-    // Draw the invalid character as '?'
-    if (c < display->font->first || c > display->font->last) {
+    if (c < display->font->first || c > display->font->last)
         c = '?';
-    }
 
-    // Draw the character
-    struct ssd1306_glyph *glyph =
-        &display->font->glyph[c - display->font->first];
+    struct ssd1306_glyph *glyph;
+    glyph = &display->font->glyph[c - display->font->first];
     h_draw_char(display, &display->font->bitmap[glyph->bitmap_offset],
                 glyph->width, glyph->height, glyph->x_offset, glyph->y_offset,
                 glyph->x_advance);
@@ -1861,19 +1729,16 @@ void ssd1306_draw_str(struct ssd1306_display *display, const char *str) {
  * @param num 32-bit variable to be drawn.
  */
 void ssd1306_draw_int32(struct ssd1306_display *display, int32_t num) {
-    // if the number is 0
     if (num == 0) {
         ssd1306_draw_char(display, '0');
         return;
     }
 
-    // If the number is negative
     if (num < 0) {
         ssd1306_draw_char(display, '-');
         num = -num;
     }
 
-    // Draw the number
     uint8_t digits[10];
     uint8_t i = 0;
     while (num > 0) {
@@ -1919,18 +1784,15 @@ void ssd1306_draw_int32(struct ssd1306_display *display, int32_t num) {
  */
 void ssd1306_draw_float(struct ssd1306_display *display, float num,
                         uint8_t digits) {
-    // If the number is negative
     if (num < 0.0f) {
         ssd1306_draw_char(display, '-');
         num = -num;
     }
 
-    // Draw the integer part
     int32_t num_int = (int32_t)num;
     ssd1306_draw_int32(display, num_int);
     ssd1306_draw_char(display, '.');
 
-    // Draw the fractional part
     num -= num_int;
     for (; digits > 0; digits--) {
         num *= 10;
@@ -2160,36 +2022,20 @@ uint8_t *sd1306_get_buffer(struct ssd1306_display *display) {
  */
 uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x,
                                  int16_t y) {
-    // Return 0 if out of bounds
-    if (x < 0) {
+    if ((x < 0) || (y < 0) || (x > SSD1306_X_MAX))
         return 0;
-    }
-    if (y < 0) {
-        return 0;
-    }
-    if (x > SSD1306_X_MAX) {
-        return 0;
-    }
+
     if (display->display_type) {
-        if (y > SSD1306_Y_MAX_64) {
+        if (y > SSD1306_Y_MAX_64)
             return 0;
-        }
     } else {
-        if (y > SSD1306_Y_MAX_32) {
+        if (y > SSD1306_Y_MAX_32)
             return 0;
-        }
     }
 
-    uint16_t index;
-    uint8_t mask;
-
-    // Find the buffer index and its mask according to the given coordinates
-    index = SSD1306_PAGE_OFFSETS[y >> 3] + (uint16_t)x;
-    mask = (uint8_t)(1 << (y & 7));
-
-    // Return the pixel
-    if (display->buffer[index] & mask) {
+    uint16_t index = SSD1306_PAGE_OFFSETS[y >> 3] + (uint16_t)x;
+    uint8_t mask = (uint8_t)(1 << (y & 7));
+    if (display->buffer[index] & mask)
         return 1;
-    }
     return 0;
 }
