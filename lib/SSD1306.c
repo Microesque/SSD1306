@@ -1224,9 +1224,9 @@ void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0,
 
     int16_t r_max;
     if (width < height)
-        r_max = (int16_t)((uint16_t)width >> 1); /* In case not optimized */
+        r_max = width >> 1; /* Width is always positive */
     else
-        r_max = (int16_t)((uint16_t)height >> 1); /* In case not optimized */
+        r_max = height >> 1; /* Height is always positive */
 
     if (r < 0)
         r = 0;
@@ -1286,16 +1286,15 @@ void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0,
     }
 
     int16_t r_max;
-    if (width < height) {
-        r_max = (int16_t)((uint16_t)width >> 1); /* In case not optimized */
-    } else {
-        r_max = (int16_t)((uint16_t)height >> 1); /* In case not optimized */
-    }
-    if (r < 0) {
+    if (width < height)
+        r_max = width >> 1; /* Width is always positive */
+    else
+        r_max = height >> 1; /* Height is always positive */
+
+    if (r < 0)
         r = 0;
-    } else if (r > r_max) {
+    else if (r > r_max)
         r = r_max;
-    }
 
     int16_t width_h = width - r - r;
     int16_t height_v = height - r - r;
