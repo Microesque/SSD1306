@@ -2091,7 +2091,7 @@ void ssd1306_draw_float(struct ssd1306_display *display, float num,
 void ssd1306_draw_printf(struct ssd1306_display *display, const char *format,
                          ...)
 {
-    char str[SD1306_PRINTF_CHAR_LIMIT];
+    char str[SSD1306_PRINTF_CHAR_LIMIT];
     va_list args;
     va_start(args, format);
     vsnprintf(str, sizeof(str), format, args);

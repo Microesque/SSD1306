@@ -150,7 +150,7 @@
      * "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of RAM will be reserved
      * (once, not per display), but only if ssd1306_draw_printf() is used.
      */
-    #define SD1306_PRINTF_CHAR_LIMIT 255
+    #define SSD1306_PRINTF_CHAR_LIMIT 255
 
     /*
      * The following define the default values or actions taken after a display
