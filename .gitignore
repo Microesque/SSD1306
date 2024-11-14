@@ -5,6 +5,7 @@
 !/.gitignore
 !/LICENSE.txt
 !/README.md
+!.clang-format
 
 !/lib/
 !/lib/SSD1306.c
