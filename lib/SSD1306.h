@@ -40,8 +40,9 @@
     /*------------------------------------------------------------------------*/
 
     /*
-    If the display is in "draw" mode, all of the draw methods will turn those
-    pixels on. In "clear" mode, they will turn those pixels off instead.
+     * Buffer modes for the displays. In draw mode, draw functions will turn the
+     * pixels on. In clear mode, draw functions will turn the pixels off
+     * instead.
      */
     enum ssd1306_buffer_mode {
         SSD1306_BUFFER_MODE_CLEAR,
@@ -49,7 +50,7 @@
     };
     
     /*
-    Choose according to your display type (128x32 or 128x64).
+     * Types for the respective displays (128x32 or 128x64).
      */
     enum ssd1306_display_type {
         SSD1306_DISPLAY_TYPE_32,
@@ -57,26 +58,27 @@
     };
 
     /*
-    Buffer sizes needed for the respective display type (128x32 or 128x64).
+     * Buffer sizes required by the respective display types (128x32 or
+     * 128x64).
      */
-    #define SSD1306_BUFFER_SIZE_32 512 //
+    #define SSD1306_BUFFER_SIZE_32 512  //
     #define SSD1306_BUFFER_SIZE_64 1024
 
     /*
-    Max. coordinates for both display types.
+     * Maximum coordinates for the respective display types (128x32 and 128x64).
      */
-    #define SSD1306_X_MAX  127 //
-    #define SSD1306_Y_MAX_32  31 
-    #define SSD1306_Y_MAX_64  63
+    #define SSD1306_X_MAX 127  //
+    #define SSD1306_Y_MAX_32 31 
+    #define SSD1306_Y_MAX_64 63
     
     /*
-    Masks that can be OR'd to be used in the "SSD1306_draw_arc()" and
-    "SSD1306_draw_arc_fill()" functions.
+     * Masks that can be OR'd to enable specific quadrants when drawing with
+     * ssd1306_draw_arc() and ssd1306_draw_arc_fill().
      */
-    #define SSD1306_ARC_QUAD1  0x1  // Mask to enable quadrant-1
-    #define SSD1306_ARC_QUAD2  0x2  // Mask to enable quadrant-2
-    #define SSD1306_ARC_QUAD3  0x4  // Mask to enable quadrant-3
-    #define SSD1306_ARC_QUAD4  0x8  // Mask to enable quadrant-4
+    #define SSD1306_ARC_QUAD1 0x1  // Mask to enable quadrant-1
+    #define SSD1306_ARC_QUAD2 0x2  // Mask to enable quadrant-2
+    #define SSD1306_ARC_QUAD3 0x4  // Mask to enable quadrant-3
+    #define SSD1306_ARC_QUAD4 0x8  // Mask to enable quadrant-4
 
 
     /*------------------------------------------------------------------------*/
@@ -84,9 +86,9 @@
     /*------------------------------------------------------------------------*/
     
     /*
-    Adafruit-GFX glyph structure.
-    */
-    struct ssd1306_glyph{
+     * Structure representing glyphs for characters.
+     */
+    struct ssd1306_glyph {
         uint16_t bitmap_offset;
         uint8_t width;
         uint8_t height;
@@ -96,8 +98,8 @@
     };
 
     /*
-    Adafruit-GFX font structure.
-    */
+     * Structure representing fonts.
+     */
     struct ssd1306_font {
         uint8_t *bitmap;
         struct ssd1306_glyph *glyph;
@@ -107,8 +109,8 @@
     };
     
     /*
-    Custom character structure.
-    */
+     * Structure representing custom characters.
+     */
     struct ssd1306_custom_char {
         uint8_t *bitmap;
         uint8_t width;
@@ -119,7 +121,7 @@
     };
 
     /*
-    Structure that represents your displays. Initialize with "SSD1306_init()".
+     * Structure presenting your displays. Initialize with ssd1306_init().
      */
     struct ssd1306_display {
         void (*I2C_start)(void);
@@ -142,93 +144,94 @@
     /*------------------------------------------------------------------------*/
 
     /*
-    Maximum number of characters that 'SSD1306_draw_printf()' can display at a
-    time, including the null termination.
-    
-    "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of RAM will be reserved
-    (total, not per display), but only if you use 'SSD1306_draw_printf()'.
-    */
+     * The maximum number of characters that ssd1306_draw_printf() can draw
+     * at a time, including the null terminator.
+     * 
+     * "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of RAM will be reserved
+     * (once, not per display), but only if ssd1306_draw_printf() is used.
+     */
     #define SD1306_PRINTF_CHAR_LIMIT 255
 
     /*
-    Below, you can configure the default settings for the display after calling
-    'SSD1306_init()' or 'SSD1306_reinit()'. Square brackets denote valid values.
-    
-    If you're unsure about what these do, just leave them as they are. All of
-    the settings below have an equivalent function to setup/change, all of
-    which also come with a comprehensive description. 
-    */
+     * The following define the default values or actions taken after a display
+     * init/reinit. Square brackets indicate the valid range of values.
+     * 
+     * If you're unsure about any of them, you can leave them as is. All of
+     * the options below have an equivalent function to setup/change, all of
+     * which also come with a comprehensive description.
+     */
 
     /*
-    Brightness level [0-255].
-    */
+     * The default brightness level [0-255].
+     */
     #define SSD1306_DEFAULT_BRIGHTNESS 127
 
     /*
-    Should the display be fully on [true | false].
-    */
+     * Enable the fully-on mode [true | false].
+     */
     #define SSD1306_DEFAULT_FULLY_ON false
 
     /*
-    Should the display be inverted [true | false].
-    */
+     * Invert the display [true | false].
+     */
     #define SSD1306_DEFAULT_INVERSE false
 
     /*
-    Should the display be mirrored horizontally [true | false].
-    */
+     * Mirror the display horizontally [true | false].
+     */
     #define SSD1306_DEFAULT_MIRROR_H false
 
     /*
-    Should the display be mirrored vertically [true | false].
-    */
+     * Mirror the display vertically [true | false].
+     */
     #define SSD1306_DEFAULT_MIRROR_V false
 
     /*
-    Should the display be enabled [true | false].
-    */
+     * Enable the display [true | false].
+     */
     #define SSD1306_DEFAULT_ENABLE true
 
     /*
-    Buffer mode [SSD1306_BUFFER_MODE_CLEAR | SSD1306_BUFFER_MODE_DRAW].
-    */
+     * The default buffer mode
+     * [SSD1306_BUFFER_MODE_CLEAR | SSD1306_BUFFER_MODE_DRAW].
+     */
     #define SSD1306_DEFAULT_BUFFER_MODE SSD1306_BUFFER_MODE_DRAW
 
     /*
-    Should the buffer be cleared [true | false].
-    */
+     * Clear the buffer [true | false].
+     */
     #define SSD1306_DEFAULT_CLEAR_BUFFER true
 
     /*
-    Should the buffer be filled [true | false].
-    */
+     * Fill the buffer [true | false].
+     */
     #define SSD1306_DEFAULT_FILL_BUFFER false
 
     /*
-    Default font, 'NULL' means no font [NULL, &<GFXfont>].
-
-    To set up a default font, include the header file of your font above the
-    macro, then set the value to the address of the 'GFXfont' variable.
-
-    Ex:
-        #include "../fonts/RandomFont.h"
-        #define SSD1306_DEFAULT_FONT &RandomFont
-    */
+     * The default font [NULL, &<ssd1306_font>].
+     * 
+     * To set up a default font, include the header file of your font above the
+     * macro, then set the value to the address of the ssd1306_font variable.
+     * 
+     * Ex:
+     *     #include "../fonts/RandomFont.h"
+     *     #define SSD1306_DEFAULT_FONT &RandomFont
+     */
     #define SSD1306_DEFAULT_FONT NULL
 
     /*
-    Font scale [0-255].
-    */
+     * The default font scale [0-255].
+     */
     #define SSD1306_DEFAULT_FONT_SCALE 1
 
     /*
-    Cursor x-coordinate [-32768...32767].
-    */
+     * The default x-coordinate of the cursor [-32768...32767].
+     */
     #define SSD1306_DEFAULT_CURSOR_X 0
 
     /*
-    Cursor y-coordinate [-32768...32767].
-    */
+     * The default y-coordinate of the cursor [-32768...32767].
+     */
     #define SSD1306_DEFAULT_CURSOR_Y 15
 
 
@@ -242,7 +245,6 @@
                       enum ssd1306_display_type display_type, uint8_t *buffer);
     void ssd1306_reinit(struct ssd1306_display *display);
     
-    // ----- Display Functions -----
 
     void ssd1306_display_update(struct ssd1306_display *display);
     void ssd1306_display_brightness(struct ssd1306_display *display,
@@ -262,7 +264,6 @@
                                        uint8_t interval);
     void ssd1306_display_scroll_disable(struct ssd1306_display *display);
 
-    // ----- Draw Functions -----
 
     void ssd1306_draw_clear(struct ssd1306_display *display);
     void ssd1306_draw_fill(struct ssd1306_display *display);
@@ -319,7 +320,6 @@
     void ssd1306_draw_printf(struct ssd1306_display *display,
                              const char *format, ...);
 
-    // ----- Setter Functions -----
 
     void ssd1306_set_buffer_mode(struct ssd1306_display *display,
                                  enum ssd1306_buffer_mode mode);
@@ -329,7 +329,6 @@
     void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x,
                             int16_t y);
 
-    // ----- Getter Functions -----
 
     uint8_t ssd1306_get_display_address(struct ssd1306_display *display);
     enum ssd1306_display_type ssd1306_get_display_type(
