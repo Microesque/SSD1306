@@ -289,7 +289,7 @@ void ssd1306_reinit(struct ssd1306_display *display) {
     cmd_buffer[1] = 0x14;
     h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
-#if SSD1306_DEFAULT_CLEAR_BUFFER == true
+#if SSD1306_DEFAULT_CLEAR_BUFFER == true && SSD1306_DEFAULT_FILL_BUFFER == false
     ssd1306_draw_clear(display);
 #endif
 #if SSD1306_DEFAULT_FILL_BUFFER == true
