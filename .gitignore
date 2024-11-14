@@ -8,5 +8,5 @@
 !.clang-format
 
 !/lib/
-!/lib/SSD1306.c
-!/lib/SSD1306.h
+!/lib/ssd1306.c
+!/lib/ssd1306.h
