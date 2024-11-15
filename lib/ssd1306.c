@@ -247,32 +247,38 @@ void ssd1306_reinit(struct ssd1306_display *display) {
     ssd1306_display_enable(display, false);
 
     uint8_t cmd_buffer[3];
-    if (display->display_type) {
-        cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
-        cmd_buffer[1] = 0x00;
-        cmd_buffer[2] = 0x07;
-        h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
-    } else {
-        cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
-        cmd_buffer[1] = 0x00;
-        cmd_buffer[2] = 0x03;
-        h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
 
-        cmd_buffer[0] = SSD1306_CMD_SET_MUX_RATIO;
+    cmd_buffer[0] = SSD1306_CMD_SET_MUX_RATIO;
+    if (display->display_type)
+        cmd_buffer[1] = 0x3F;
+    else
         cmd_buffer[1] = 0x1F;
-        h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
-        cmd_buffer[0] = SSD1306_CMD_SET_COM_CONFIGURATION;
+    cmd_buffer[0] = SSD1306_CMD_SET_COM_CONFIGURATION;
+    if (display->display_type)
+        cmd_buffer[1] = 0x12;
+    else
         cmd_buffer[1] = 0x02;
-        h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
-        cmd_buffer[0] = SSD1306_CMD_SET_VERTICAL_SCROLL_AREA;
-        cmd_buffer[1] = 0x00;
+    cmd_buffer[0] = SSD1306_CMD_SET_VERTICAL_SCROLL_AREA;
+    cmd_buffer[1] = 0x00;
+    if (display->display_type)
+        cmd_buffer[2] = 0x40;
+    else
         cmd_buffer[2] = 0x20;
-        h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
-    }
+    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
 
-    cmd_buffer[0] = SSD1306_CMD_SET_COLUMN_ADDRESS;
+    cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS; /* Resets address ptr */
+    cmd_buffer[1] = 0x00;
+    if (display->display_type)
+        cmd_buffer[2] = 0x07;
+    else
+        cmd_buffer[2] = 0x03;
+    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
+
+    cmd_buffer[0] = SSD1306_CMD_SET_COLUMN_ADDRESS; /* Resets address ptr */
     cmd_buffer[1] = 0x00;
     cmd_buffer[2] = 0x7F;
     h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
