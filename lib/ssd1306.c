@@ -1596,8 +1596,7 @@ void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0,
     for (int16_t h = 0; h < height; h++) {
         for (int16_t w = 0; w < width; w++) {
             if (!((uint8_t)w & 7)) {
-                pixels = *bitmap;
-                bitmap++;
+                pixels = *bitmap++;
             }
 
             if (!(pixels & 1)) {
@@ -1723,8 +1722,7 @@ void ssd1306_draw_char_custom(struct ssd1306_display *display,
  */
 void ssd1306_draw_str(struct ssd1306_display *display, const char *str) {
     while (*str != '\0') {
-        ssd1306_draw_char(display, *str);
-        str++;
+        ssd1306_draw_char(display, *str++);
     }
 }
 
@@ -1763,7 +1761,7 @@ void ssd1306_draw_int32(struct ssd1306_display *display, int32_t num) {
         num = -num;
     }
 
-    uint8_t digits[10];
+    uint8_t digits[10]; /* int32 max 10 digits */
     uint8_t i = 0;
     while (num > 0) {
         digits[i] = num % 10;
@@ -1817,10 +1815,11 @@ void ssd1306_draw_float(struct ssd1306_display *display, float num,
     ssd1306_draw_int32(display, num_int);
     ssd1306_draw_char(display, '.');
 
+    uint8_t d;
     num -= num_int;
     for (; digits > 0; digits--) {
         num *= 10;
-        uint8_t d = (uint8_t)num;
+        d = (uint8_t)num;
         num -= d;
         ssd1306_draw_char(display, ('0' + d));
     }
@@ -2054,6 +2053,6 @@ uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x,
     uint8_t mask = (uint8_t)(1 << (y & 7));
     if (display->buffer[index] & mask)
         return 1;
-        
+
     return 0;
 }
