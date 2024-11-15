@@ -148,23 +148,24 @@ static void h_display_write(struct ssd1306_display *display,
 static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
                         uint8_t width, uint8_t height, int8_t x_offset,
                         int8_t y_offset, uint8_t x_advance) {
+    int16_t x0 = display->cursor_x + x_offset;
+    int16_t y0 = display->cursor_y + y_offset;
     uint8_t scale = display->font_scale;
+    uint8_t count = 0;
     uint8_t pixels;
-    uint8_t count = 8;
     for (uint8_t h = 0; h < height; h++) {
         for (uint8_t w = 0; w < width; w++) {
-            if (count == 8) {
-                count = 0;
-                pixels = *bitmap;
-                bitmap++;
+            if (count == 0) {
+                count = 8;
+                pixels = *bitmap++;
             }
+            count--;
+
             if (pixels & 0x80) {
-                ssd1306_draw_rect_fill(
-                    display, display->cursor_x + x_offset + (w * scale),
-                    display->cursor_y + y_offset + (h * scale), scale, scale);
+                ssd1306_draw_rect_fill(display, x0 + (w * scale),
+                                       y0 + (h * scale), scale, scale);
             }
             pixels <<= 1;
-            count++;
         }
     }
     display->cursor_x += (x_advance * scale);
