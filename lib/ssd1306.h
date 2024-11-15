@@ -201,7 +201,7 @@ struct ssd1306_display {
 /*
  * Fill the buffer [true | false].
  */
-#define SSD1306_DEFAULT_FILL_BUFFER true
+#define SSD1306_DEFAULT_FILL_BUFFER false
 
 /*
  * The default font [NULL, &<ssd1306_font>].
