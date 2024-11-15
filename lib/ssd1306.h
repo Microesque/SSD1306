@@ -307,6 +307,7 @@ void ssd1306_draw_printf(struct ssd1306_display *display, const char *format,
 
 void ssd1306_set_buffer_mode(struct ssd1306_display *display,
                              enum ssd1306_buffer_mode mode);
+void ssd1306_set_buffer_mode_inverse(struct ssd1306_display *display);
 void ssd1306_set_font(struct ssd1306_display *display,
                       const struct ssd1306_font *font);
 void ssd1306_set_font_scale(struct ssd1306_display *display, uint8_t scale);

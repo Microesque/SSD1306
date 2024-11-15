@@ -1602,9 +1602,9 @@ void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0,
             if (!(pixels & 1)) {
                 ssd1306_draw_pixel(display, x0 + w, y0 + h);
             } else if (has_bg) {
-                display->buffer_mode ^= 1;
+                ssd1306_set_buffer_mode_inverse(display);
                 ssd1306_draw_pixel(display, x0 + w, y0 + h);
-                display->buffer_mode ^= 1;
+                ssd1306_set_buffer_mode_inverse(display);
             }
             pixels >>= 1;
         }
@@ -1884,6 +1884,18 @@ void ssd1306_draw_printf(struct ssd1306_display *display, const char *format,
 void ssd1306_set_buffer_mode(struct ssd1306_display *display,
                              enum ssd1306_buffer_mode mode) {
     display->buffer_mode = mode;
+}
+
+/**
+ * @brief Inverts the buffer mode of the display (draw->clear | clear->draw).
+ *
+ * @note In draw mode, draw functions will turn the pixels on. In clear mode,
+ * draw functions will turn the pixels off instead.
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ */
+void ssd1306_set_buffer_mode_inverse(struct ssd1306_display *display) {
+    display->buffer_mode ^= 1;
 }
 
 /**
