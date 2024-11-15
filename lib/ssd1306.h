@@ -160,7 +160,7 @@ struct ssd1306_display {
  */
 
 /*
- * The default brightness level [0-255].
+ * The default brightness level [0...255].
  */
 #define SSD1306_DEFAULT_BRIGHTNESS 127
 
@@ -218,7 +218,7 @@ struct ssd1306_display {
 #define SSD1306_DEFAULT_FONT NULL
 
 /*
- * The default font scale [0-255].
+ * The default font scale [0...255].
  */
 #define SSD1306_DEFAULT_FONT_SCALE 1
 
