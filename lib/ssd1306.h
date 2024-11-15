@@ -66,8 +66,10 @@ enum ssd1306_display_type {
  * Maximum coordinates for the respective display types (128x32 and 128x64).
  */
 #define SSD1306_X_MAX 127 /**/
+#define SSD1306_X_MIN 0
 #define SSD1306_Y_MAX_32 31
 #define SSD1306_Y_MAX_64 63
+#define SSD1306_Y_MIN 0
 
 /*
  * Masks that can be OR'd to enable specific quadrants when drawing with

@@ -121,6 +121,30 @@ static void h_display_write(struct ssd1306_display *display,
 }
 
 /**
+ * @brief Checks it the specified coordinates are within the range for the
+ * respective display type.
+ *
+ * @param x x-coordinate to check.
+ * @param y y-coordinate to check.
+ * @param display_type Type of the display (128x32 or 128x64).
+ * @return 'true' if within range; 'false' if out of bounds.
+ */
+static bool h_are_coords_in_bounds(int16_t x, int16_t y,
+                                   enum ssd1306_display_type display_type) {
+    int16_t y_max;
+    if (display_type)
+        y_max = SSD1306_Y_MAX_64;
+    else
+        y_max = SSD1306_Y_MAX_32;
+
+    if ((x < SSD1306_X_MIN) || (y < SSD1306_Y_MIN) || (x > SSD1306_X_MAX) ||
+        (y > y_max))
+        return false;
+
+    return true;
+}
+
+/**
  * @brief Draws a character with the specified values at the current cursor
  * location.
  *
@@ -792,17 +816,10 @@ void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated) {
  * @param y y-coordinate of the pixel. Any value out of bounds will be clipped.
  */
 void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {
-    if ((x < 0) || (y < 0) || (x > SSD1306_X_MAX))
+    if (!h_are_coords_in_bounds(x, y, display->display_type))
         return;
 
-    if (display->display_type) {
-        if (y > SSD1306_Y_MAX_64)
-            return;
-    } else {
-        if (y > SSD1306_Y_MAX_32)
-            return;
-    }
-
+    /* x > 0 and y > 0 after above check */
     uint16_t index = SSD1306_PAGE_OFFSETS[y >> 3] + (uint16_t)x;
     uint8_t mask = (uint8_t)(1 << (y & 7));
     if (display->buffer_mode)
@@ -2029,20 +2046,14 @@ uint8_t *sd1306_get_buffer(struct ssd1306_display *display) {
  */
 uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x,
                                  int16_t y) {
-    if ((x < 0) || (y < 0) || (x > SSD1306_X_MAX))
+    if (!h_are_coords_in_bounds(x, y, display->display_type))
         return 0;
 
-    if (display->display_type) {
-        if (y > SSD1306_Y_MAX_64)
-            return 0;
-    } else {
-        if (y > SSD1306_Y_MAX_32)
-            return 0;
-    }
-
+    /* x > 0 and y > 0 after above check */
     uint16_t index = SSD1306_PAGE_OFFSETS[y >> 3] + (uint16_t)x;
     uint8_t mask = (uint8_t)(1 << (y & 7));
     if (display->buffer[index] & mask)
         return 1;
+        
     return 0;
 }
