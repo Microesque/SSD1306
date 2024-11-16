@@ -10,3 +10,6 @@
 !/lib/
 !/lib/ssd1306.c
 !/lib/ssd1306.h
+!/demo/
+!/demo/ssd1306_demo.h
+!/demo/ssd1306_demo.c
