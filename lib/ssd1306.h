@@ -218,9 +218,9 @@ struct ssd1306_custom_char {
  * Structure presenting your displays. Initialize with ssd1306_init().
  */
 struct ssd1306_display {
-    void (*I2C_start)(void);
-    uint8_t (*I2C_write)(uint8_t);
-    void (*I2C_stop)(void);
+    void (*i2c_start)(void);
+    void (*i2c_write)(uint8_t);
+    void (*i2c_stop)(void);
     const struct ssd1306_font *font;
     uint8_t *buffer;
     int16_t cursor_x0;
@@ -228,7 +228,7 @@ struct ssd1306_display {
     int16_t cursor_y;
     enum ssd1306_display_type display_type;
     enum ssd1306_buffer_mode buffer_mode;
-    uint8_t I2C_address;
+    uint8_t i2c_address;
     uint8_t font_scale;
 };
 
@@ -236,9 +236,9 @@ struct ssd1306_display {
 /*---------------------------- Available Functions ---------------------------*/
 /*----------------------------------------------------------------------------*/
 
-void ssd1306_init(struct ssd1306_display *display, uint8_t I2C_address,
-                  void (*I2C_start)(void), uint8_t (*I2C_write)(uint8_t),
-                  void (*I2C_stop)(void),
+void ssd1306_init(struct ssd1306_display *display, uint8_t i2c_address,
+                  void (*i2c_start)(void), void (*i2c_write)(uint8_t),
+                  void (*i2c_stop)(void),
                   enum ssd1306_display_type display_type, uint8_t *buffer);
 void ssd1306_reinit(struct ssd1306_display *display);
 

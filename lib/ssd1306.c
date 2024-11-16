@@ -111,13 +111,13 @@ static void h_display_write(struct ssd1306_display *display,
     else
         mode = SSD1306_CONTROL_CMD;
 
-    display->I2C_start();
-    display->I2C_write((uint8_t)(display->I2C_address << 1));
-    display->I2C_write(mode);
+    display->i2c_start();
+    display->i2c_write((uint8_t)(display->i2c_address << 1));
+    display->i2c_write(mode);
     for (uint16_t i = 0; i < length; i++) {
-        display->I2C_write(buffer[i]);
+        display->i2c_write(buffer[i]);
     }
-    display->I2C_stop();
+    display->i2c_stop();
 }
 
 /**
@@ -217,22 +217,22 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
  * @param I2C_address 7-bit address of the display.
  * @param I2C_start Pointer to the function that initiates an I2C start
  * condition.
- * @param I2C_write Pointer to the function that sends 8-bit data on the
- * I2C bus.
+ * @param I2C_write Pointer to the function that sends an 8-bit data on the I2C
+ * bus.
  * @param I2C_stop Pointer to the function that initiates an I2C stop condition.
  * @param display_type Type of the display (128x32 or 128x64).
  * @param buffer Pointer to the array that'll be used as the buffer for that
  * display. Use the macros in the header file to declare an array with the
  * appropriate size according to the display type.
  */
-void ssd1306_init(struct ssd1306_display *display, uint8_t I2C_address,
-                  void (*I2C_start)(void), uint8_t (*I2C_write)(uint8_t),
-                  void (*I2C_stop)(void),
+void ssd1306_init(struct ssd1306_display *display, uint8_t i2c_address,
+                  void (*i2c_start)(void), void (*i2c_write)(uint8_t),
+                  void (*i2c_stop)(void),
                   enum ssd1306_display_type display_type, uint8_t *buffer) {
-    display->I2C_address = I2C_address;
-    display->I2C_start = I2C_start;
-    display->I2C_write = I2C_write;
-    display->I2C_stop = I2C_stop;
+    display->i2c_address = i2c_address;
+    display->i2c_start = i2c_start;
+    display->i2c_write = i2c_write;
+    display->i2c_stop = i2c_stop;
     display->display_type = display_type;
     display->buffer = buffer;
 
@@ -1962,7 +1962,7 @@ void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x, int16_t y) {
  * been called for the specified structure, the return value will be undefined.
  */
 uint8_t ssd1306_get_display_address(struct ssd1306_display *display) {
-    return display->I2C_address;
+    return display->i2c_address;
 }
 
 /**
