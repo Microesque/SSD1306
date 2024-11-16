@@ -34,6 +34,101 @@
 #include <stdint.h>
 
 /*----------------------------------------------------------------------------*/
+/*------------------------------- Library Setup ------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+/*
+ * The maximum number of characters that ssd1306_draw_printf() can draw
+ * at a time, including the null terminator.
+ *
+ * "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of RAM will be reserved
+ * (once, not per display), but only if ssd1306_draw_printf() is used.
+ */
+#define SSD1306_PRINTF_CHAR_LIMIT 255
+
+/*
+ * The following define the default values or actions taken after a display
+ * init/reinit. Square brackets indicate the valid range of values.
+ *
+ * If you're unsure about any of them, you can leave them as is. All of
+ * the options below have an equivalent function to setup/change, all of
+ * which also come with a comprehensive description.
+ */
+
+/*
+ * The default brightness level [0...255].
+ */
+#define SSD1306_DEFAULT_BRIGHTNESS 127
+
+/*
+ * Enable the fully-on mode [true | false].
+ */
+#define SSD1306_DEFAULT_FULLY_ON false
+
+/*
+ * Invert the display [true | false].
+ */
+#define SSD1306_DEFAULT_INVERSE false
+
+/*
+ * Mirror the display horizontally [true | false].
+ */
+#define SSD1306_DEFAULT_MIRROR_H false
+
+/*
+ * Mirror the display vertically [true | false].
+ */
+#define SSD1306_DEFAULT_MIRROR_V false
+
+/*
+ * Enable the display [true | false].
+ */
+#define SSD1306_DEFAULT_ENABLE true
+
+/*
+ * The default buffer mode
+ * [SSD1306_BUFFER_MODE_CLEAR | SSD1306_BUFFER_MODE_DRAW].
+ */
+#define SSD1306_DEFAULT_BUFFER_MODE SSD1306_BUFFER_MODE_DRAW
+
+/*
+ * Clear the buffer [true | false].
+ */
+#define SSD1306_DEFAULT_CLEAR_BUFFER true
+
+/*
+ * Fill the buffer [true | false].
+ */
+#define SSD1306_DEFAULT_FILL_BUFFER false
+
+/*
+ * The default font [NULL, &<ssd1306_font>].
+ *
+ * To set up a default font, include the header file of your font above the
+ * macro, then set the value to the address of the ssd1306_font variable.
+ *
+ * Ex:
+ *     #include "../fonts/RandomFont.h"
+ *     #define SSD1306_DEFAULT_FONT &RandomFont
+ */
+#define SSD1306_DEFAULT_FONT NULL
+
+/*
+ * The default font scale [0...255].
+ */
+#define SSD1306_DEFAULT_FONT_SCALE 1
+
+/*
+ * The default x-coordinate of the cursor [-32768...32767].
+ */
+#define SSD1306_DEFAULT_CURSOR_X 0
+
+/*
+ * The default y-coordinate of the cursor [-32768...32767].
+ */
+#define SSD1306_DEFAULT_CURSOR_Y 15
+
+/*----------------------------------------------------------------------------*/
 /*------------------------------- Enums/Macros -------------------------------*/
 /*----------------------------------------------------------------------------*/
 
@@ -136,101 +231,6 @@ struct ssd1306_display {
     uint8_t I2C_address;
     uint8_t font_scale;
 };
-
-/*----------------------------------------------------------------------------*/
-/*------------------------------- Library Setup ------------------------------*/
-/*----------------------------------------------------------------------------*/
-
-/*
- * The maximum number of characters that ssd1306_draw_printf() can draw
- * at a time, including the null terminator.
- *
- * "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of RAM will be reserved
- * (once, not per display), but only if ssd1306_draw_printf() is used.
- */
-#define SSD1306_PRINTF_CHAR_LIMIT 255
-
-/*
- * The following define the default values or actions taken after a display
- * init/reinit. Square brackets indicate the valid range of values.
- *
- * If you're unsure about any of them, you can leave them as is. All of
- * the options below have an equivalent function to setup/change, all of
- * which also come with a comprehensive description.
- */
-
-/*
- * The default brightness level [0...255].
- */
-#define SSD1306_DEFAULT_BRIGHTNESS 127
-
-/*
- * Enable the fully-on mode [true | false].
- */
-#define SSD1306_DEFAULT_FULLY_ON false
-
-/*
- * Invert the display [true | false].
- */
-#define SSD1306_DEFAULT_INVERSE false
-
-/*
- * Mirror the display horizontally [true | false].
- */
-#define SSD1306_DEFAULT_MIRROR_H false
-
-/*
- * Mirror the display vertically [true | false].
- */
-#define SSD1306_DEFAULT_MIRROR_V false
-
-/*
- * Enable the display [true | false].
- */
-#define SSD1306_DEFAULT_ENABLE true
-
-/*
- * The default buffer mode
- * [SSD1306_BUFFER_MODE_CLEAR | SSD1306_BUFFER_MODE_DRAW].
- */
-#define SSD1306_DEFAULT_BUFFER_MODE SSD1306_BUFFER_MODE_DRAW
-
-/*
- * Clear the buffer [true | false].
- */
-#define SSD1306_DEFAULT_CLEAR_BUFFER true
-
-/*
- * Fill the buffer [true | false].
- */
-#define SSD1306_DEFAULT_FILL_BUFFER false
-
-/*
- * The default font [NULL, &<ssd1306_font>].
- *
- * To set up a default font, include the header file of your font above the
- * macro, then set the value to the address of the ssd1306_font variable.
- *
- * Ex:
- *     #include "../fonts/RandomFont.h"
- *     #define SSD1306_DEFAULT_FONT &RandomFont
- */
-#define SSD1306_DEFAULT_FONT NULL
-
-/*
- * The default font scale [0...255].
- */
-#define SSD1306_DEFAULT_FONT_SCALE 1
-
-/*
- * The default x-coordinate of the cursor [-32768...32767].
- */
-#define SSD1306_DEFAULT_CURSOR_X 0
-
-/*
- * The default y-coordinate of the cursor [-32768...32767].
- */
-#define SSD1306_DEFAULT_CURSOR_Y 15
 
 /*----------------------------------------------------------------------------*/
 /*---------------------------- Available Functions ---------------------------*/
