@@ -319,6 +319,7 @@ void ssd1306_draw_printf(struct ssd1306_display *display, const char *format,
 
 void ssd1306_set_draw_border(struct ssd1306_display *display, uint8_t x0,
                              uint8_t y0, uint8_t x1, uint8_t y1);
+void ssd1306_set_draw_border_reset(struct ssd1306_display *display);
 void ssd1306_set_buffer_mode(struct ssd1306_display *display,
                              enum ssd1306_buffer_mode mode);
 void ssd1306_set_buffer_mode_inverse(struct ssd1306_display *display);

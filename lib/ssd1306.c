@@ -1943,6 +1943,24 @@ void ssd1306_set_draw_border(struct ssd1306_display *display, uint8_t x_min,
 }
 
 /**
+ * @brief Sets the drawable border to the respective display type's full range.
+ * 
+ * @param display Pointer to the ssd1306_display structure.
+ */
+void ssd1306_set_draw_border_reset(struct ssd1306_display *display) {
+    uint8_t ssd1306_y_max;
+    if (display->display_type)
+        ssd1306_y_max = SSD1306_Y_MAX_64;
+    else
+        ssd1306_y_max = SSD1306_Y_MAX_32;
+
+    display->border_x_min = 0;
+    display->border_y_min = 0;
+    display->border_x_max = SSD1306_X_MAX;
+    display->border_y_max = ssd1306_y_max;
+}
+
+/**
  * @brief Changes the buffer mode of the display (draw/clear).
  *
  * @note In draw mode, draw functions will turn the pixels on. In clear mode,
