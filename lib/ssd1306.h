@@ -86,6 +86,18 @@
 #define SSD1306_DEFAULT_ENABLE true
 
 /*
+ * The default drawing border [0...255].
+ *
+ * SSD1306_DEFAULT_DRAW_BORDER_Y1_32 -> y1 for 128x32 displays.
+ * SSD1306_DEFAULT_DRAW_BORDER_Y1_64 -> y1 for 128x64 displays.
+ */
+#define SSD1306_DEFAULT_DRAW_BORDER_X0 0
+#define SSD1306_DEFAULT_DRAW_BORDER_Y0 0
+#define SSD1306_DEFAULT_DRAW_BORDER_X1 127
+#define SSD1306_DEFAULT_DRAW_BORDER_Y1_32 31
+#define SSD1306_DEFAULT_DRAW_BORDER_Y1_64 63
+
+/*
  * The default buffer mode
  * [SSD1306_BUFFER_MODE_CLEAR | SSD1306_BUFFER_MODE_DRAW].
  */
@@ -119,13 +131,9 @@
 #define SSD1306_DEFAULT_FONT_SCALE 1
 
 /*
- * The default x-coordinate of the cursor [-32768...32767].
+ * The default xy-coordinates of the cursor [-32768...32767].
  */
 #define SSD1306_DEFAULT_CURSOR_X 0
-
-/*
- * The default y-coordinate of the cursor [-32768...32767].
- */
 #define SSD1306_DEFAULT_CURSOR_Y 15
 
 /*----------------------------------------------------------------------------*/
@@ -230,6 +238,10 @@ struct ssd1306_display {
     enum ssd1306_buffer_mode buffer_mode;
     uint8_t i2c_address;
     uint8_t font_scale;
+    uint8_t border_x_min;
+    uint8_t border_y_min;
+    uint8_t border_x_max;
+    uint8_t border_y_max;
 };
 
 /*----------------------------------------------------------------------------*/
@@ -305,6 +317,8 @@ void ssd1306_draw_float(struct ssd1306_display *display, float num,
 void ssd1306_draw_printf(struct ssd1306_display *display, const char *format,
                          ...);
 
+void ssd1306_set_draw_border(struct ssd1306_display *display, uint8_t x0,
+                             uint8_t y0, uint8_t x1, uint8_t y1);
 void ssd1306_set_buffer_mode(struct ssd1306_display *display,
                              enum ssd1306_buffer_mode mode);
 void ssd1306_set_buffer_mode_inverse(struct ssd1306_display *display);

@@ -129,16 +129,10 @@ static void h_display_write(struct ssd1306_display *display,
  * @param display_type Type of the display (128x32 or 128x64).
  * @return 'true' if within range; 'false' if out of bounds.
  */
-static bool h_are_coords_in_bounds(int16_t x, int16_t y,
-                                   enum ssd1306_display_type display_type) {
-    int16_t y_max;
-    if (display_type)
-        y_max = SSD1306_Y_MAX_64;
-    else
-        y_max = SSD1306_Y_MAX_32;
-
-    if ((x < SSD1306_X_MIN) || (y < SSD1306_Y_MIN) || (x > SSD1306_X_MAX) ||
-        (y > y_max))
+static bool h_are_coords_in_bounds(struct ssd1306_display *display, int16_t x,
+                                   int16_t y) {
+    if ((x < display->border_x_min) || (x > display->border_x_max) ||
+        (y < display->border_y_min) || (y > display->border_y_max))
         return false;
 
     return true;
@@ -320,18 +314,27 @@ void ssd1306_reinit(struct ssd1306_display *display) {
     cmd_buffer[1] = 0x14;
     h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
 
-#if SSD1306_DEFAULT_CLEAR_BUFFER == true && SSD1306_DEFAULT_FILL_BUFFER == false
-    ssd1306_draw_clear(display);
-#endif
-#if SSD1306_DEFAULT_FILL_BUFFER == true
-    ssd1306_draw_fill(display);
-#endif
     ssd1306_display_brightness(display, SSD1306_DEFAULT_BRIGHTNESS);
     ssd1306_display_fully_on(display, SSD1306_DEFAULT_FULLY_ON);
     ssd1306_display_inverse(display, SSD1306_DEFAULT_INVERSE);
     ssd1306_display_mirror_h(display, SSD1306_DEFAULT_MIRROR_H);
     ssd1306_display_mirror_v(display, SSD1306_DEFAULT_MIRROR_V);
     ssd1306_display_enable(display, SSD1306_DEFAULT_ENABLE);
+
+#if SSD1306_DEFAULT_CLEAR_BUFFER == true && SSD1306_DEFAULT_FILL_BUFFER == false
+    ssd1306_draw_clear(display);
+#endif
+#if SSD1306_DEFAULT_FILL_BUFFER == true
+    ssd1306_draw_fill(display);
+#endif
+    uint8_t border_y1;
+    if (display->display_type)
+        border_y1 = SSD1306_DEFAULT_DRAW_BORDER_Y1_64;
+    else
+        border_y1 = SSD1306_DEFAULT_DRAW_BORDER_Y1_32;
+    ssd1306_set_draw_border(display, SSD1306_DEFAULT_DRAW_BORDER_X0,
+                            SSD1306_DEFAULT_DRAW_BORDER_Y0,
+                            SSD1306_DEFAULT_DRAW_BORDER_X1, border_y1);
     ssd1306_set_buffer_mode(display, SSD1306_DEFAULT_BUFFER_MODE);
     ssd1306_set_font(display, SSD1306_DEFAULT_FONT);
     ssd1306_set_font_scale(display, SSD1306_DEFAULT_FONT_SCALE);
@@ -816,7 +819,7 @@ void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated) {
  * @param y y-coordinate of the pixel. Any value out of bounds will be clipped.
  */
 void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {
-    if (!h_are_coords_in_bounds(x, y, display->display_type))
+    if (!h_are_coords_in_bounds(display, x, y))
         return;
 
     /* x > 0 and y > 0 after above check */
@@ -1873,6 +1876,49 @@ void ssd1306_draw_printf(struct ssd1306_display *display, const char *format,
 /*----------------------------------------------------------------------------*/
 
 /**
+ * @brief Sets the drawable border of the display.
+ *
+ * @note
+ * - Any attempts to draw pixels outside of the specified ranges will be
+ * ignored.
+ *
+ * - Ranges exceeding the respective display type's resolution will be
+ * automatically limited to the display's maximum resolution.
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ * @param x_min Minimum x-coordinate before clipping.
+ * @param y_min Minimum y-coordinate before clipping.
+ * @param x_max Maximum x-coordinate before clipping.
+ * @param y_max Maximum y-coordinate before clipping.
+ */
+void ssd1306_set_draw_border(struct ssd1306_display *display, uint8_t x_min,
+                             uint8_t y_min, uint8_t x_max, uint8_t y_max) {
+    /* Below checks must done to prevent writing to random memory locations! */
+    uint8_t ssd1306_y_max;
+    if (display->display_type)
+        ssd1306_y_max = SSD1306_Y_MAX_64;
+    else
+        ssd1306_y_max = SSD1306_Y_MAX_32;
+
+    if (x_min > SSD1306_X_MAX)
+        x_min = SSD1306_X_MAX;
+
+    if (x_max > SSD1306_X_MAX)
+        x_max = SSD1306_X_MAX;
+
+    if (y_min > ssd1306_y_max)
+        y_min = ssd1306_y_max;
+
+    if (y_max > ssd1306_y_max)
+        y_max = ssd1306_y_max;
+
+    display->border_x_min = x_min;
+    display->border_y_min = y_min;
+    display->border_x_max = x_max;
+    display->border_y_max = y_max;
+}
+
+/**
  * @brief Changes the buffer mode of the display (draw/clear).
  *
  * @note In draw mode, draw functions will turn the pixels on. In clear mode,
@@ -2057,7 +2103,7 @@ uint8_t *sd1306_get_buffer(struct ssd1306_display *display) {
  */
 uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x,
                                  int16_t y) {
-    if (!h_are_coords_in_bounds(x, y, display->display_type))
+    if (!h_are_coords_in_bounds(display, x, y))
         return 0;
 
     /* x > 0 and y > 0 after above check */
