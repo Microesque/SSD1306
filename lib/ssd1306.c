@@ -123,6 +123,14 @@ static void h_display_write(struct ssd1306_display *display,
 /**
  * @brief Checks it the specified coordinates are within the range for the
  * respective display type.
+ * 
+ * @note After this check, these are guarenteed:
+ * 
+ * - (x > 0) and (y > 0)
+ * 
+ * - (y < SSD1306_Y_MAX_32) for 128x32 displays
+ * 
+ * - (y < SSD1306_Y_MAX_64) for 128x64 displays
  *
  * @param x x-coordinate to check.
  * @param y y-coordinate to check.
@@ -573,6 +581,8 @@ void ssd1306_display_scroll_disable(struct ssd1306_display *display) {
  *
  * @note
  * - Ignores buffer mode (draw/clear).
+ * 
+ * - Ignores draw border.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -595,6 +605,8 @@ void ssd1306_draw_clear(struct ssd1306_display *display) {
  *
  * @note
  * - Ignores buffer mode (draw/clear).
+ * 
+ * - Ignores draw border.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -615,7 +627,10 @@ void ssd1306_draw_fill(struct ssd1306_display *display) {
 /**
  * @brief Shifts the buffer contents to the right by one pixel.
  *
- * @note Draw functions don't update the display. Don't forget to call the
+ * @note 
+ * - Ignores draw border.
+ * 
+ * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
  *
  * @param display Pointer to the ssd1306_display structure.
@@ -657,7 +672,10 @@ void ssd1306_draw_shift_right(struct ssd1306_display *display,
 /**
  * @brief Shifts the buffer contents to the left by one pixel.
  *
- * @note Draw functions don't update the display. Don't forget to call the
+ * @note 
+ * - Ignores draw border.
+ * 
+ * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
  *
  * @param display Pointer to the ssd1306_display structure.
@@ -697,7 +715,10 @@ void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated) {
 /**
  * @brief Shifts the buffer contents upward by one pixel.
  *
- * @note Draw functions don't update the display. Don't forget to call the
+ * @note 
+ * - Ignores draw border.
+ * 
+ * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
  *
  * @param display Pointer to the ssd1306_display structure.
@@ -751,7 +772,10 @@ void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated) {
 /**
  * @brief Shifts the buffer contents downward by one pixel.
  *
- * @note Draw functions don't update the display. Don't forget to call the
+ * @note 
+ * - Ignores draw border.
+ * 
+ * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
  *
  * @param display Pointer to the ssd1306_display structure.
@@ -808,8 +832,8 @@ void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated) {
  * @note
  * - Clears the pixel instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -838,8 +862,8 @@ void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -873,8 +897,8 @@ void ssd1306_draw_line_h(struct ssd1306_display *display, int16_t x0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -907,8 +931,8 @@ void ssd1306_draw_line_v(struct ssd1306_display *display, int16_t x0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -982,8 +1006,8 @@ void ssd1306_draw_line(struct ssd1306_display *display, int16_t x0, int16_t y0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1010,8 +1034,8 @@ void ssd1306_draw_triangle(struct ssd1306_display *display, int16_t x0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1139,8 +1163,8 @@ void ssd1306_draw_triangle_fill(struct ssd1306_display *display, int16_t x0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1179,8 +1203,8 @@ void ssd1306_draw_rect(struct ssd1306_display *display, int16_t x0, int16_t y0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1217,8 +1241,8 @@ void ssd1306_draw_rect_fill(struct ssd1306_display *display, int16_t x0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1280,8 +1304,8 @@ void ssd1306_draw_rect_round(struct ssd1306_display *display, int16_t x0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1349,8 +1373,8 @@ void ssd1306_draw_rect_round_fill(struct ssd1306_display *display, int16_t x0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1431,8 +1455,8 @@ void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1513,8 +1537,8 @@ void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1536,8 +1560,8 @@ void ssd1306_draw_circle(struct ssd1306_display *display, int16_t x0,
  * @note
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1571,8 +1595,8 @@ void ssd1306_draw_circle_fill(struct ssd1306_display *display, int16_t x0,
  * of the images to match the original. Setting the buffer mode to clear will
  * result in drawing the inverse of the ORIGINAL image.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1633,8 +1657,8 @@ void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0,
  *
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1680,8 +1704,8 @@ void ssd1306_draw_char(struct ssd1306_display *display, char c) {
  *
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1714,8 +1738,8 @@ void ssd1306_draw_char_custom(struct ssd1306_display *display,
  *
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1744,8 +1768,8 @@ void ssd1306_draw_str(struct ssd1306_display *display, const char *str) {
  *
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1797,8 +1821,8 @@ void ssd1306_draw_int32(struct ssd1306_display *display, int32_t num) {
  *
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
@@ -1851,8 +1875,8 @@ void ssd1306_draw_float(struct ssd1306_display *display, float num,
  *
  * - Clears the pixels instead if the buffer is in clear mode.
  *
- * - Drawing off-screen is allowed, but pixels that are out of bounds will be
- * clipped.
+ * - Drawing outside the border is allowed, but pixels that are out of bounds
+ * will be clipped.
  *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
