@@ -123,13 +123,13 @@ static void h_display_write(struct ssd1306_display *display,
 /**
  * @brief Checks it the specified coordinates are within the range for the
  * respective display type.
- * 
+ *
  * @note After this check, these are guarenteed:
- * 
+ *
  * - (x > 0) and (y > 0)
- * 
+ *
  * - (y < SSD1306_Y_MAX_32) for 128x32 displays
- * 
+ *
  * - (y < SSD1306_Y_MAX_64) for 128x64 displays
  *
  * @param x x-coordinate to check.
@@ -581,7 +581,7 @@ void ssd1306_display_scroll_disable(struct ssd1306_display *display) {
  *
  * @note
  * - Ignores buffer mode (draw/clear).
- * 
+ *
  * - Ignores draw border.
  *
  * - Draw functions don't update the display. Don't forget to call the
@@ -605,7 +605,7 @@ void ssd1306_draw_clear(struct ssd1306_display *display) {
  *
  * @note
  * - Ignores buffer mode (draw/clear).
- * 
+ *
  * - Ignores draw border.
  *
  * - Draw functions don't update the display. Don't forget to call the
@@ -627,9 +627,9 @@ void ssd1306_draw_fill(struct ssd1306_display *display) {
 /**
  * @brief Shifts the buffer contents to the right by one pixel.
  *
- * @note 
+ * @note
  * - Ignores draw border.
- * 
+ *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
  *
@@ -672,9 +672,9 @@ void ssd1306_draw_shift_right(struct ssd1306_display *display,
 /**
  * @brief Shifts the buffer contents to the left by one pixel.
  *
- * @note 
+ * @note
  * - Ignores draw border.
- * 
+ *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
  *
@@ -715,9 +715,9 @@ void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated) {
 /**
  * @brief Shifts the buffer contents upward by one pixel.
  *
- * @note 
+ * @note
  * - Ignores draw border.
- * 
+ *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
  *
@@ -772,9 +772,9 @@ void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated) {
 /**
  * @brief Shifts the buffer contents downward by one pixel.
  *
- * @note 
+ * @note
  * - Ignores draw border.
- * 
+ *
  * - Draw functions don't update the display. Don't forget to call the
  * ssd1306_display_update() to push the buffer onto the display.
  *
@@ -1944,7 +1944,7 @@ void ssd1306_set_draw_border(struct ssd1306_display *display, uint8_t x_min,
 
 /**
  * @brief Sets the drawable border to the respective display type's full range.
- * 
+ *
  * @param display Pointer to the ssd1306_display structure.
  */
 void ssd1306_set_draw_border_reset(struct ssd1306_display *display) {
@@ -2064,6 +2064,29 @@ uint8_t ssd1306_get_display_address(struct ssd1306_display *display) {
 enum ssd1306_display_type
 ssd1306_get_display_type(struct ssd1306_display *display) {
     return display->display_type;
+}
+
+/**
+ * @brief Returns the current drawable border of the display.
+ *
+ * @note The drawable border can be set by calling ssd1306_set_draw_border().
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ * @param x_min Pointer where the minimum x-coordinate before clipping will be
+ * placed.
+ * @param y_min Pointer where the minimum y-coordinate before clipping will be
+ * placed.
+ * @param x_max Pointer where the maximum x-coordinate before clipping will be
+ * placed.
+ * @param y_max Pointer where the maximum y-coordinate before clipping will be
+ * placed.
+ */
+void ssd1306_get_draw_border(struct ssd1306_display *display, uint8_t *x_min,
+                             uint8_t *y_min, uint8_t *x_max, uint8_t *y_max) {
+    *x_min = display->border_x_min;
+    *y_min = display->border_y_min;
+    *x_max = display->border_x_max;
+    *y_max = display->border_y_max;
 }
 
 /**

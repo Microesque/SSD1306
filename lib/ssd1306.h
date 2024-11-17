@@ -331,6 +331,8 @@ void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x, int16_t y);
 uint8_t ssd1306_get_display_address(struct ssd1306_display *display);
 enum ssd1306_display_type
 ssd1306_get_display_type(struct ssd1306_display *display);
+void ssd1306_get_draw_border(struct ssd1306_display *display, uint8_t *x_min,
+                             uint8_t *y_min, uint8_t *x_max, uint8_t *y_max);
 enum ssd1306_buffer_mode
 ssd1306_get_buffer_mode(struct ssd1306_display *display);
 const struct ssd1306_font *ssd1306_get_font(struct ssd1306_display *display);
