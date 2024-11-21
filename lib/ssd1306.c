@@ -121,7 +121,7 @@ static void h_send_data_buffer(struct ssd1306_display *display) {
  * @brief Checks it the specified coordinates are within the range for the
  * respective display type.
  *
- * @note After this check, these are guarenteed:
+ * @note After this check, these are guaranteed:
  *
  * - (x > 0) and (y > 0)
  *
@@ -283,7 +283,7 @@ void ssd1306_init(struct ssd1306_display *display, uint8_t i2c_address,
  */
 void ssd1306_reinit(struct ssd1306_display *display) {
     /*
-     * Some commands are ommited here since their default state is the same as
+     * Some commands are omitted here since their default state is the same as
      * intended, and the library never changes them.
      *
      * The display functions are also called in case the user re-programs or
@@ -533,7 +533,7 @@ void ssd1306_display_mirror_v(struct ssd1306_display *display,
 void ssd1306_display_scroll_enable(struct ssd1306_display *display,
                                    bool is_left, bool is_diagonal,
                                    uint8_t interval) {
-    /* Datasheet p46 */
+    /* Data-sheet p46 */
     ssd1306_display_scroll_disable(display);
 
     uint8_t *cmd_buffer = display->cmd_buffer;
@@ -584,7 +584,7 @@ void ssd1306_display_scroll_disable(struct ssd1306_display *display) {
     display->cmd_buffer[0] = SSD1306_CMD_SCROLL_DISABLE;
     h_send_cmd_buffer(display, 1);
 
-    /* Datasheet p46 */
+    /* Data-sheet p46 */
     ssd1306_display_update(display);
 }
 
@@ -1442,7 +1442,7 @@ void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0,
         delta_e += 2;
         x++;
 
-        /* Draw using 8-way symetry */
+        /* Draw using 8-way symmetry */
         diff_1 = y - x + 1;
         diff_2 = -y + x - 1;
         if (quadrants & 0b0001) {
@@ -1524,7 +1524,7 @@ void ssd1306_draw_arc_fill(struct ssd1306_display *display, int16_t x0,
         delta_e += 2;
         x++;
 
-        /* Draw using 8-way symetry */
+        /* Draw using 8-way symmetry */
         diff_1 = y - x + 1;
         diff_2 = -y + x - 1;
         if (quadrants & 0b0001) {
