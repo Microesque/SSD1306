@@ -29,16 +29,20 @@
 #include "ssd1306_demo.h"
 
 /*----------------------------------------------------------------------------*/
-/*----------------------- Library Enums/Macros/Globals -----------------------*/
+/*----------------------------- Helper Functions -----------------------------*/
 /*----------------------------------------------------------------------------*/
 
-#define animation_frame_delay()                                                \
-    do {                                                                       \
-        for (volatile uint16_t i = 0; i < delay; i++) {                        \
-            for (volatile uint8_t i = 0; i < 255; i++) {                       \
-            }                                                                  \
-        }                                                                      \
-    } while (0)
+/**
+ * @brief Arbitrary delay for the animations to use.
+ *
+ * @param delay Arbitrary delay value that slows down the animation.
+ */
+static void h_delay(uint16_t delay) {
+    for (volatile uint16_t i = 0; i < delay; i++) {
+        for (volatile uint8_t i = 0; i < 255; i++) {
+        }
+    }
+}
 
 /*----------------------------------------------------------------------------*/
 /*------------------------------ Demo Functions ------------------------------*/
@@ -103,7 +107,7 @@ void ssd1306_demo_1(struct ssd1306_display *display, uint16_t delay) {
         ssd1306_draw_bitmap(display, bitmap_x0, bitmap_y0, BITMAP, BITMAP_WIDTH,
                             BITMAP_HEIGHT, false);
         ssd1306_display_update(display);
-        animation_frame_delay();
+        h_delay(delay);
     }
 }
 
@@ -130,12 +134,12 @@ void ssd1306_demo_2(struct ssd1306_display *display, uint16_t delay) {
         for (i = 0; i <= SSD1306_Y_MAX; i += LINE_GAP) {
             ssd1306_draw_line(display, 0, 0, SSD1306_X_MAX, i);
             ssd1306_display_update(display);
-            animation_frame_delay();
+            h_delay(delay);
         }
         for (i = LINE_GAP; i <= SSD1306_X_MAX; i += LINE_GAP) {
             ssd1306_draw_line(display, 0, 0, SSD1306_X_MAX - i, SSD1306_Y_MAX);
             ssd1306_display_update(display);
-            animation_frame_delay();
+            h_delay(delay);
         }
 
         /* Top right */
@@ -143,12 +147,12 @@ void ssd1306_demo_2(struct ssd1306_display *display, uint16_t delay) {
         for (i = 0; i <= SSD1306_Y_MAX; i += LINE_GAP) {
             ssd1306_draw_line(display, SSD1306_X_MAX, 0, 0, i);
             ssd1306_display_update(display);
-            animation_frame_delay();
+            h_delay(delay);
         }
         for (i = LINE_GAP; i <= SSD1306_X_MAX; i += LINE_GAP) {
             ssd1306_draw_line(display, SSD1306_X_MAX, 0, i, SSD1306_Y_MAX);
             ssd1306_display_update(display);
-            animation_frame_delay();
+            h_delay(delay);
         }
 
         /* Bottom right */
@@ -157,12 +161,12 @@ void ssd1306_demo_2(struct ssd1306_display *display, uint16_t delay) {
             ssd1306_draw_line(display, SSD1306_X_MAX, SSD1306_Y_MAX, 0,
                               SSD1306_Y_MAX - i);
             ssd1306_display_update(display);
-            animation_frame_delay();
+            h_delay(delay);
         }
         for (i = LINE_GAP; i <= SSD1306_X_MAX; i += LINE_GAP) {
             ssd1306_draw_line(display, SSD1306_X_MAX, SSD1306_Y_MAX, i, 0);
             ssd1306_display_update(display);
-            animation_frame_delay();
+            h_delay(delay);
         }
 
         /* Bottom left */
@@ -171,12 +175,12 @@ void ssd1306_demo_2(struct ssd1306_display *display, uint16_t delay) {
             ssd1306_draw_line(display, 0, SSD1306_Y_MAX, SSD1306_X_MAX,
                               SSD1306_Y_MAX - i);
             ssd1306_display_update(display);
-            animation_frame_delay();
+            h_delay(delay);
         }
         for (i = LINE_GAP; i <= SSD1306_X_MAX; i += LINE_GAP) {
             ssd1306_draw_line(display, 0, SSD1306_Y_MAX, SSD1306_X_MAX - i, 0);
             ssd1306_display_update(display);
-            animation_frame_delay();
+            h_delay(delay);
         }
     }
 }
@@ -233,7 +237,7 @@ void ssd1306_demo_3(struct ssd1306_display *display, uint16_t delay) {
             }
         }
         ssd1306_display_update(display);
-        animation_frame_delay();
+        h_delay(delay);
     }
 }
 
@@ -292,6 +296,6 @@ void ssd1306_demo_4(struct ssd1306_display *display, uint16_t delay) {
                                    points[1].x, points[1].y, points[2].x,
                                    points[2].y);
         ssd1306_display_update(display);
-        animation_frame_delay();
+        h_delay(delay);
     }
 }
