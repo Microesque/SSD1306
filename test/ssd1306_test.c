@@ -676,7 +676,7 @@ void ssd1306_test_draw_chars(struct ssd1306_display *display, uint16_t delay) {
             } else if (i == 4) {
                 ssd1306_draw_float(display, 3.141592f, 6);
             } else if (i == 5) {
-                ssd1306_draw_printf(display, "Prinf: %d", 255);
+                ssd1306_draw_printf(display, "Printf: %d", 255);
             }
 
             ssd1306_display_update(display);

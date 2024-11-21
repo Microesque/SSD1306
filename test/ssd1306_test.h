@@ -61,7 +61,7 @@ void ssd1306_test_buffer_mode(struct ssd1306_display *display, uint16_t delay);
 void ssd1306_test_font(struct ssd1306_display *display, uint16_t delay);
 void ssd1306_test_get_others(struct ssd1306_display *display, uint16_t delay);
 
-/*---------- Ommited tests ----------*/
+/*---------- Omitted tests ----------*/
 /* ssd1306_init()           -> tested by everything */
 /* ssd1306_display_update() -> tested by everything */
 /* ssd1306_draw_pixel()     -> tested by everything */
