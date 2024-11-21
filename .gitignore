@@ -13,3 +13,6 @@
 !/demo/
 !/demo/ssd1306_demo.h
 !/demo/ssd1306_demo.c
+!/test/
+!/test/ssd1306_test.h
+!/test/ssd1306_test.c
