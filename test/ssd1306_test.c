@@ -918,7 +918,7 @@ void ssd1306_test_get_others(struct ssd1306_display *display, uint16_t delay) {
 
     /* Tests */
     while (1) {
-        if (*buffer == ssd1306_get_display_address(display))
+        if ((*buffer >> 1) == ssd1306_get_display_address(display))
             break;
     }
 
