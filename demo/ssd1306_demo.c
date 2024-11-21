@@ -299,3 +299,43 @@ void ssd1306_demo_4(struct ssd1306_display *display, uint16_t delay) {
         h_delay(delay);
     }
 }
+
+/**
+ * @brief Animation of a spiral forming.
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ * @param delay Arbitrary delay value that slows down the animation. Start with
+ * 0, if the animation is too fast, increase the value.
+ */
+void ssd1306_demo_5(struct ssd1306_display *display, uint16_t delay) {
+    uint8_t SSD1306_Y_MAX;
+    if (display->display_type)
+        SSD1306_Y_MAX = SSD1306_Y_MAX_64;
+    else
+        SSD1306_Y_MAX = SSD1306_Y_MAX_32;
+
+    int16_t x0 = SSD1306_X_MAX >> 1;
+    int16_t y0 = SSD1306_Y_MAX >> 1;
+    int16_t r_max = SSD1306_X_MAX >> 1;
+    int16_t r = 0;
+    uint8_t quadrant = 1;
+    ssd1306_set_buffer_mode(display, SSD1306_BUFFER_MODE_DRAW);
+    while (1) {
+        if (r == r_max) {
+            r = 1;
+            quadrant = 1;
+            ssd1306_set_buffer_mode_inverse(display);
+        } else {
+            r++;
+        }
+
+        if (quadrant == 0x10)
+            quadrant = 1;
+        else
+            quadrant <<= 1;
+
+        ssd1306_draw_arc(display, x0, y0, r, quadrant);
+        ssd1306_display_update(display);
+        h_delay(delay);
+    }
+}

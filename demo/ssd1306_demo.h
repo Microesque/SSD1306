@@ -39,5 +39,6 @@ void ssd1306_demo_1(struct ssd1306_display *display, uint16_t delay);
 void ssd1306_demo_2(struct ssd1306_display *display, uint16_t delay);
 void ssd1306_demo_3(struct ssd1306_display *display, uint16_t delay);
 void ssd1306_demo_4(struct ssd1306_display *display, uint16_t delay);
+void ssd1306_demo_5(struct ssd1306_display *display, uint16_t delay);
 
 #endif
