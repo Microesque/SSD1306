@@ -66,6 +66,9 @@
 /*----------------------- Library Enums/Macros/Globals -----------------------*/
 /*----------------------------------------------------------------------------*/
 
+#define SSD1306_BUFFER_SIZE_32 (SSD1306_ARRAY_SIZE_32 - 2)
+#define SSD1306_BUFFER_SIZE_64 (SSD1306_ARRAY_SIZE_64 - 2)
+
 enum ssd1306_write_mode {
     SSD1306_WRITE_CMD,
     SSD1306_WRITE_DATA
@@ -91,33 +94,27 @@ static const uint16_t SSD1306_PAGE_OFFSETS[] = {
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Sends a stream of commands or data to the display.
- *
- * @note In command mode, bytes are written to the internal command registers.
- * In data mode, bytes are written to the display RAM to update the pixels.
+ * @brief Sends the command buffer to the display.
  *
  * @param display Pointer to the ssd1306_display structure.
- * @param write_mode Indicates whether the stream should be sent in command mode
- * or data mode.
- * @param buffer Pointer to an array of bytes to be sent to the display.
- * @param length Number of bytes to send from the buffer.
+ * @param length The number of bytes to send. Maximum 8 commands, not checked!
  */
-static void h_display_write(struct ssd1306_display *display,
-                            enum ssd1306_write_mode write_mode,
-                            const uint8_t *buffer, uint16_t length) {
-    uint8_t mode;
-    if (write_mode)
-        mode = SSD1306_CONTROL_DATA;
-    else
-        mode = SSD1306_CONTROL_CMD;
+static void h_send_cmd_buffer(struct ssd1306_display *display, uint8_t length) {
+    display->i2c_write(display->cmd_memory, length + 2);
+}
 
-    display->i2c_start();
-    display->i2c_write((uint8_t)(display->i2c_address << 1));
-    display->i2c_write(mode);
-    for (uint16_t i = 0; i < length; i++) {
-        display->i2c_write(buffer[i]);
-    }
-    display->i2c_stop();
+/**
+ * @brief Sends the data (draw) buffer to the display.
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ */
+static void h_send_data_buffer(struct ssd1306_display *display) {
+    uint16_t buffer_size;
+    if (display->display_type)
+        buffer_size = SSD1306_ARRAY_SIZE_64;
+    else
+        buffer_size = SSD1306_ARRAY_SIZE_32;
+    display->i2c_write(display->data_buffer - 2, buffer_size);
 }
 
 /**
@@ -216,27 +213,49 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
  * - The display will be updated (limitation of the driver chip).
  *
  * @param display Pointer to the ssd1306_display structure.
- * @param I2C_address 7-bit address of the display.
- * @param I2C_start Pointer to the function that initiates an I2C start
- * condition.
- * @param I2C_write Pointer to the function that sends an 8-bit data on the I2C
- * bus.
- * @param I2C_stop Pointer to the function that initiates an I2C stop condition.
+ * @param i2c_address 7-bit address of the display.
  * @param display_type Type of the display (128x32 or 128x64).
- * @param buffer Pointer to the array that'll be used as the buffer for that
+ * @param array Pointer to the array that'll be used as the buffer for the
  * display. Use the macros in the header file to declare an array with the
  * appropriate size according to the display type.
+ * @param i2c_write Pointer to the function that writes a stream of data onto
+ * the I2C bus. The first byte of the data will always be the i2c_address of the
+ * display. If your I2C library sends the address separately:
+ *
+ * 1-) Read the first byte and assign it to the address of your library
+ * function.
+ *
+ * 2-) Advance the data pointer by one, and decrement the length by one, and
+ * send the data with your library function.
  */
 void ssd1306_init(struct ssd1306_display *display, uint8_t i2c_address,
-                  void (*i2c_start)(void), void (*i2c_write)(uint8_t),
-                  void (*i2c_stop)(void),
-                  enum ssd1306_display_type display_type, uint8_t *buffer) {
-    display->i2c_address = i2c_address;
-    display->i2c_start = i2c_start;
+                  enum ssd1306_display_type display_type, uint8_t *array,
+                  void (*i2c_write)(uint8_t *data, uint16_t length)) {
+    /*
+     * The actual data (draw) buffer starts with a 2 byte offset. The first two
+     * bytes are reserved for "I2C address" and "data mode". This way the whole
+     * array (data_buffer_ptr - 2) can be sent to the write function.
+     *
+     * The same also applies for the command buffer. The first two bytes are
+     * reserved for "I2C address" and "cmd mode". This way the whole array
+     * (cmd_buffer_ptr - 2) can be sent to the write function. Beware of the max
+     * command length (ssd1306_display.cmd_memory[]).
+     *
+     * NEVER modify the addresses of data_buffer and cmd_buffer!
+     *
+     * This is to enable support for various I2C libraries, some of which don't
+     * have a sequential write, or address-data separate write functions.
+     */
+    i2c_address <<= 1; /* Write only */
+    array[0] = i2c_address;
+    array[1] = SSD1306_CONTROL_DATA;
+    display->data_buffer = &array[2];
+    display->cmd_memory[0] = i2c_address;
+    display->cmd_memory[1] = SSD1306_CONTROL_CMD;
+    display->cmd_buffer = &display->cmd_memory[2];
+
     display->i2c_write = i2c_write;
-    display->i2c_stop = i2c_stop;
     display->display_type = display_type;
-    display->buffer = buffer;
 
     /* Rest of the structure is initialized here */
     ssd1306_reinit(display);
@@ -273,21 +292,21 @@ void ssd1306_reinit(struct ssd1306_display *display) {
     /* Avoid random flickering */
     ssd1306_display_enable(display, false);
 
-    uint8_t cmd_buffer[3];
+    uint8_t *cmd_buffer = display->cmd_buffer;
 
     cmd_buffer[0] = SSD1306_CMD_SET_MUX_RATIO;
     if (display->display_type)
         cmd_buffer[1] = 0x3F;
     else
         cmd_buffer[1] = 0x1F;
-    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+    h_send_cmd_buffer(display, 2);
 
     cmd_buffer[0] = SSD1306_CMD_SET_COM_CONFIGURATION;
     if (display->display_type)
         cmd_buffer[1] = 0x12;
     else
         cmd_buffer[1] = 0x02;
-    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+    h_send_cmd_buffer(display, 2);
 
     cmd_buffer[0] = SSD1306_CMD_SET_VERTICAL_SCROLL_AREA;
     cmd_buffer[1] = 0x00;
@@ -295,7 +314,7 @@ void ssd1306_reinit(struct ssd1306_display *display) {
         cmd_buffer[2] = 0x40;
     else
         cmd_buffer[2] = 0x20;
-    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
+    h_send_cmd_buffer(display, 3);
 
     cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS; /* Resets address ptr */
     cmd_buffer[1] = 0x00;
@@ -303,31 +322,30 @@ void ssd1306_reinit(struct ssd1306_display *display) {
         cmd_buffer[2] = 0x07;
     else
         cmd_buffer[2] = 0x03;
-    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
+    h_send_cmd_buffer(display, 3);
 
     cmd_buffer[0] = SSD1306_CMD_SET_COLUMN_ADDRESS; /* Resets address ptr */
     cmd_buffer[1] = 0x00;
     cmd_buffer[2] = 0x7F;
-    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 3);
+    h_send_cmd_buffer(display, 3);
 
     cmd_buffer[0] = SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE;
     cmd_buffer[1] = 0x00;
-    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+    h_send_cmd_buffer(display, 2);
 
     cmd_buffer[0] = SSD1306_CMD_SET_DIV_RATIO_AND_FREQ;
     cmd_buffer[1] = 0xF0;
-    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+    h_send_cmd_buffer(display, 2);
 
     cmd_buffer[0] = SSD1306_CMD_SET_CHARGE_PUMP;
     cmd_buffer[1] = 0x14;
-    h_display_write(display, SSD1306_WRITE_CMD, cmd_buffer, 2);
+    h_send_cmd_buffer(display, 2);
 
     ssd1306_display_brightness(display, SSD1306_DEFAULT_BRIGHTNESS);
     ssd1306_display_fully_on(display, SSD1306_DEFAULT_FULLY_ON);
     ssd1306_display_inverse(display, SSD1306_DEFAULT_INVERSE);
     ssd1306_display_mirror_h(display, SSD1306_DEFAULT_MIRROR_H);
     ssd1306_display_mirror_v(display, SSD1306_DEFAULT_MIRROR_V);
-    ssd1306_display_enable(display, SSD1306_DEFAULT_ENABLE);
 
 #if SSD1306_DEFAULT_CLEAR_BUFFER == true && SSD1306_DEFAULT_FILL_BUFFER == false
     ssd1306_draw_clear(display);
@@ -348,6 +366,9 @@ void ssd1306_reinit(struct ssd1306_display *display) {
     ssd1306_set_font_scale(display, SSD1306_DEFAULT_FONT_SCALE);
     ssd1306_set_cursor(display, SSD1306_DEFAULT_CURSOR_X,
                        SSD1306_DEFAULT_CURSOR_Y);
+
+    /* Do the enable at the end */
+    ssd1306_display_enable(display, SSD1306_DEFAULT_ENABLE);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -360,12 +381,7 @@ void ssd1306_reinit(struct ssd1306_display *display) {
  * @param display Pointer to the ssd1306_display structure.
  */
 void ssd1306_display_update(struct ssd1306_display *display) {
-    uint16_t buffer_size;
-    if (display->display_type)
-        buffer_size = SSD1306_BUFFER_SIZE_64;
-    else
-        buffer_size = SSD1306_BUFFER_SIZE_32;
-    h_display_write(display, SSD1306_WRITE_DATA, display->buffer, buffer_size);
+    h_send_data_buffer(display);
 }
 
 /**
@@ -377,8 +393,9 @@ void ssd1306_display_update(struct ssd1306_display *display) {
  */
 void ssd1306_display_brightness(struct ssd1306_display *display,
                                 uint8_t brightness) {
-    uint8_t cmd[] = {SSD1306_CMD_SET_CONTRAST_CONTROL, brightness};
-    h_display_write(display, SSD1306_WRITE_CMD, cmd, 2);
+    display->cmd_buffer[0] = SSD1306_CMD_SET_CONTRAST_CONTROL;
+    display->cmd_buffer[1] = brightness;
+    h_send_cmd_buffer(display, 2);
 }
 
 /**
@@ -391,12 +408,11 @@ void ssd1306_display_brightness(struct ssd1306_display *display,
  * @param is_enabled `true` to enable; `false` to disable.
  */
 void ssd1306_display_enable(struct ssd1306_display *display, bool is_enabled) {
-    uint8_t cmd;
     if (is_enabled)
-        cmd = SSD1306_CMD_DISPLAY_ON;
+        display->cmd_buffer[0] = SSD1306_CMD_DISPLAY_ON;
     else
-        cmd = SSD1306_CMD_DISPLAY_OFF;
-    h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
+        display->cmd_buffer[0] = SSD1306_CMD_DISPLAY_OFF;
+    h_send_cmd_buffer(display, 1);
 }
 
 /**
@@ -410,12 +426,11 @@ void ssd1306_display_enable(struct ssd1306_display *display, bool is_enabled) {
  */
 void ssd1306_display_fully_on(struct ssd1306_display *display,
                               bool is_enabled) {
-    uint8_t cmd;
     if (is_enabled)
-        cmd = SSD1306_CMD_ENTIRE_DISPLAY_ON_ENABLED;
+        display->cmd_buffer[0] = SSD1306_CMD_ENTIRE_DISPLAY_ON_ENABLED;
     else
-        cmd = SSD1306_CMD_ENTIRE_DISPLAY_ON_DISABLED;
-    h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
+        display->cmd_buffer[0] = SSD1306_CMD_ENTIRE_DISPLAY_ON_DISABLED;
+    h_send_cmd_buffer(display, 1);
 }
 
 /**
@@ -428,12 +443,11 @@ void ssd1306_display_fully_on(struct ssd1306_display *display,
  * @param is_enabled 'true' to enable; 'false' to disable.
  */
 void ssd1306_display_inverse(struct ssd1306_display *display, bool is_enabled) {
-    uint8_t cmd;
     if (is_enabled)
-        cmd = SSD1306_CMD_INVERSE_ENABLED;
+        display->cmd_buffer[0] = SSD1306_CMD_INVERSE_ENABLED;
     else
-        cmd = SSD1306_CMD_INVERSE_DISABLED;
-    h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
+        display->cmd_buffer[0] = SSD1306_CMD_INVERSE_DISABLED;
+    h_send_cmd_buffer(display, 1);
 }
 
 /**
@@ -446,12 +460,11 @@ void ssd1306_display_inverse(struct ssd1306_display *display, bool is_enabled) {
  */
 void ssd1306_display_mirror_h(struct ssd1306_display *display,
                               bool is_enabled) {
-    uint8_t cmd;
     if (is_enabled)
-        cmd = SSD1306_CMD_SEGMENT_REMAP_ENABLED;
+        display->cmd_buffer[0] = SSD1306_CMD_SEGMENT_REMAP_ENABLED;
     else
-        cmd = SSD1306_CMD_SEGMENT_REMAP_DISABLED;
-    h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
+        display->cmd_buffer[0] = SSD1306_CMD_SEGMENT_REMAP_DISABLED;
+    h_send_cmd_buffer(display, 1);
 
     /* Only effects subsequent data */
     ssd1306_display_update(display);
@@ -467,12 +480,11 @@ void ssd1306_display_mirror_h(struct ssd1306_display *display,
  */
 void ssd1306_display_mirror_v(struct ssd1306_display *display,
                               bool is_enabled) {
-    uint8_t cmd;
     if (is_enabled)
-        cmd = SSD1306_CMD_SCAN_REMAP_ENABLED;
+        display->cmd_buffer[0] = SSD1306_CMD_SCAN_REMAP_ENABLED;
     else
-        cmd = SSD1306_CMD_SCAN_REMAP_DISABLED;
-    h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
+        display->cmd_buffer[0] = SSD1306_CMD_SCAN_REMAP_DISABLED;
+    h_send_cmd_buffer(display, 1);
 }
 
 /**
@@ -520,38 +532,38 @@ void ssd1306_display_scroll_enable(struct ssd1306_display *display,
     /* Datasheet p46 */
     ssd1306_display_scroll_disable(display);
 
-    uint8_t cmd[8];
+    uint8_t *cmd_buffer = display->cmd_buffer;
     uint8_t cmd_length;
 
     /* Common command values */
-    cmd[1] = 0x00;
-    cmd[2] = 0x00;
-    cmd[3] = interval;
+    cmd_buffer[1] = 0x00;
+    cmd_buffer[2] = 0x00;
+    cmd_buffer[3] = interval;
     if (display->display_type)
-        cmd[4] = 0x07;
+        cmd_buffer[4] = 0x07;
     else
-        cmd[4] = 0x03;
+        cmd_buffer[4] = 0x03;
 
     /* Horizontal and diagonal scroll commands are separate */
     if (is_diagonal) {
         if (is_left)
-            cmd[0] = SSD1306_CMD_SET_SCROLL_DIAGONAL_LEFT;
+            cmd_buffer[0] = SSD1306_CMD_SET_SCROLL_DIAGONAL_LEFT;
         else
-            cmd[0] = SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT;
-        cmd[5] = 0x01;
-        cmd[6] = SSD1306_CMD_SCROLL_ENABLE;
+            cmd_buffer[0] = SSD1306_CMD_SET_SCROLL_DIAGONAL_RIGHT;
+        cmd_buffer[5] = 0x01;
+        cmd_buffer[6] = SSD1306_CMD_SCROLL_ENABLE;
         cmd_length = 7;
     } else {
         if (is_left)
-            cmd[0] = SSD1306_CMD_SET_SCROLL_JUST_LEFT;
+            cmd_buffer[0] = SSD1306_CMD_SET_SCROLL_JUST_LEFT;
         else
-            cmd[0] = SSD1306_CMD_SET_SCROLL_JUST_RIGHT;
-        cmd[5] = 0x00;
-        cmd[6] = 0xFF;
-        cmd[7] = SSD1306_CMD_SCROLL_ENABLE;
+            cmd_buffer[0] = SSD1306_CMD_SET_SCROLL_JUST_RIGHT;
+        cmd_buffer[5] = 0x00;
+        cmd_buffer[6] = 0xFF;
+        cmd_buffer[7] = SSD1306_CMD_SCROLL_ENABLE;
         cmd_length = 8;
     }
-    h_display_write(display, SSD1306_WRITE_CMD, cmd, cmd_length);
+    h_send_cmd_buffer(display, cmd_length);
 }
 
 /**
@@ -565,8 +577,8 @@ void ssd1306_display_scroll_enable(struct ssd1306_display *display,
  * @param display Pointer to the ssd1306_display structure.
  */
 void ssd1306_display_scroll_disable(struct ssd1306_display *display) {
-    uint8_t cmd = SSD1306_CMD_SCROLL_DISABLE;
-    h_display_write(display, SSD1306_WRITE_CMD, &cmd, 1);
+    display->cmd_buffer[0] = SSD1306_CMD_SCROLL_DISABLE;
+    h_send_cmd_buffer(display, 1);
 
     /* Datasheet p46 */
     ssd1306_display_update(display);
@@ -596,7 +608,7 @@ void ssd1306_draw_clear(struct ssd1306_display *display) {
     else
         buffer_size = SSD1306_BUFFER_SIZE_32;
     for (uint16_t i = 0; i < buffer_size; i++) {
-        display->buffer[i] = 0x00;
+        display->data_buffer[i] = 0x00;
     }
 }
 
@@ -620,7 +632,7 @@ void ssd1306_draw_fill(struct ssd1306_display *display) {
     else
         buffer_size = SSD1306_BUFFER_SIZE_32;
     for (uint16_t i = 0; i < buffer_size; i++) {
-        display->buffer[i] = 0xFF;
+        display->data_buffer[i] = 0xFF;
     }
 }
 
@@ -651,7 +663,7 @@ void ssd1306_draw_shift_right(struct ssd1306_display *display,
     uint8_t temp;
     uint8_t *byte_ptr;
     for (uint8_t page = 0; page <= page_last; page++) {
-        byte_ptr = &display->buffer[SSD1306_PAGE_OFFSETS[page]];
+        byte_ptr = &display->data_buffer[SSD1306_PAGE_OFFSETS[page]];
         byte_ptr += SSD1306_X_MAX;
         temp = *byte_ptr;
 
@@ -695,7 +707,7 @@ void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated) {
     uint8_t temp;
     uint8_t *byte_ptr;
     for (uint8_t page = 0; page <= page_last; page++) {
-        byte_ptr = &display->buffer[SSD1306_PAGE_OFFSETS[page]];
+        byte_ptr = &display->data_buffer[SSD1306_PAGE_OFFSETS[page]];
         temp = *byte_ptr;
 
         for (uint8_t i = 0; i < SSD1306_X_MAX; i++) {
@@ -747,7 +759,7 @@ void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated) {
     uint8_t *byte_next_ptr;
     uint8_t top_bit;
     for (uint8_t i = 0; i <= SSD1306_X_MAX; i++) {
-        byte_ptr = &display->buffer[i];
+        byte_ptr = &display->data_buffer[i];
 
         if (is_rotated) {
             if (*byte_ptr & 1)
@@ -804,7 +816,7 @@ void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated) {
     uint8_t *byte_next_ptr;
     uint8_t bottom_bit;
     for (uint8_t i = 0; i <= SSD1306_X_MAX; i++) {
-        byte_ptr = &display->buffer[i] + SSD1306_PAGE_OFFSETS[page_last];
+        byte_ptr = &display->data_buffer[i] + SSD1306_PAGE_OFFSETS[page_last];
 
         if (is_rotated) {
             if (*byte_ptr & 0x80)
@@ -850,9 +862,9 @@ void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {
     uint16_t index = SSD1306_PAGE_OFFSETS[y >> 3] + (uint16_t)x;
     uint8_t mask = (uint8_t)(1 << (y & 7));
     if (display->buffer_mode)
-        display->buffer[index] |= mask;
+        display->data_buffer[index] |= mask;
     else
-        display->buffer[index] &= ~mask;
+        display->data_buffer[index] &= ~mask;
 }
 
 /**
@@ -2050,7 +2062,7 @@ void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x, int16_t y) {
  * been called for the specified structure, the return value will be undefined.
  */
 uint8_t ssd1306_get_display_address(struct ssd1306_display *display) {
-    return display->i2c_address;
+    return *(display->data_buffer - 2);
 }
 
 /**
@@ -2152,7 +2164,7 @@ int16_t ssd1306_get_cursor(struct ssd1306_display *display, int16_t *x,
  * for the specified structure, the return value will be undefined.
  */
 uint8_t *sd1306_get_buffer(struct ssd1306_display *display) {
-    return display->buffer;
+    return display->data_buffer - 2;
 }
 
 /**
@@ -2174,7 +2186,7 @@ uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x,
     /* x > 0 and y > 0 after above check */
     uint16_t index = SSD1306_PAGE_OFFSETS[y >> 3] + (uint16_t)x;
     uint8_t mask = (uint8_t)(1 << (y & 7));
-    if (display->buffer[index] & mask)
+    if (display->data_buffer[index] & mask)
         return 1;
 
     return 0;

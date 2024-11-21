@@ -162,8 +162,8 @@ enum ssd1306_display_type {
  * Buffer sizes required by the respective display types (128x32 or
  * 128x64).
  */
-#define SSD1306_BUFFER_SIZE_32 512 /**/
-#define SSD1306_BUFFER_SIZE_64 1024
+#define SSD1306_ARRAY_SIZE_32 (2 + 512)  /* For 128x32 displays */
+#define SSD1306_ARRAY_SIZE_64 (2 + 1024) /* For 128x64 displays */
 
 /*
  * Maximum coordinates for the respective display types (128x32 and 128x64).
@@ -226,17 +226,16 @@ struct ssd1306_custom_char {
  * Structure presenting your displays. Initialize with ssd1306_init().
  */
 struct ssd1306_display {
-    void (*i2c_start)(void);
-    void (*i2c_write)(uint8_t);
-    void (*i2c_stop)(void);
+    void (*i2c_write)(uint8_t *data, uint16_t length);
     const struct ssd1306_font *font;
-    uint8_t *buffer;
+    uint8_t *data_buffer;
+    uint8_t *cmd_buffer;
     int16_t cursor_x0;
     int16_t cursor_x;
     int16_t cursor_y;
     enum ssd1306_display_type display_type;
     enum ssd1306_buffer_mode buffer_mode;
-    uint8_t i2c_address;
+    uint8_t cmd_memory[10];
     uint8_t font_scale;
     uint8_t border_x_min;
     uint8_t border_y_min;
@@ -249,9 +248,8 @@ struct ssd1306_display {
 /*----------------------------------------------------------------------------*/
 
 void ssd1306_init(struct ssd1306_display *display, uint8_t i2c_address,
-                  void (*i2c_start)(void), void (*i2c_write)(uint8_t),
-                  void (*i2c_stop)(void),
-                  enum ssd1306_display_type display_type, uint8_t *buffer);
+                  enum ssd1306_display_type display_type, uint8_t *array,
+                  void (*i2c_write)(uint8_t *data, uint16_t length));
 void ssd1306_reinit(struct ssd1306_display *display);
 
 void ssd1306_display_update(struct ssd1306_display *display);
