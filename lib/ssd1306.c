@@ -219,11 +219,18 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
  * display. Use the macros in the header file to declare an array with the
  * appropriate size according to the display type.
  * @param i2c_write Pointer to the function that writes a stream of data onto
- * the I2C bus. The first byte of the data will always be the i2c_address of the
- * display. If your I2C library sends the address separately:
- *
- * 1-) Read the first byte and assign it to the address of your library
- * function.
+ * the I2C bus.
+ * 
+ * The first byte of the data will always be the I2C write address
+ * (i2c_address << 1) of the display. Note that, this isn't the original 7-bit
+ * address, but the I2C write command for that address.
+ * 
+ * This is to enable support for various I2C libraries, some of which don't have
+ * a sequential write, or address-data separate write functions. If your I2C
+ * library sends the address separately:
+ * 
+ * 1-) Read the first byte and shift it to the right by one to get the 7-bit
+ * address.
  *
  * 2-) Advance the data pointer by one, and decrement the length by one, and
  * send the data with your library function.
@@ -242,9 +249,6 @@ void ssd1306_init(struct ssd1306_display *display, uint8_t i2c_address,
      * command length (ssd1306_display.cmd_memory[]).
      *
      * NEVER modify the addresses of data_buffer and cmd_buffer!
-     *
-     * This is to enable support for various I2C libraries, some of which don't
-     * have a sequential write, or address-data separate write functions.
      */
     i2c_address <<= 1; /* Write only */
     array[0] = i2c_address;
@@ -2055,14 +2059,15 @@ void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x, int16_t y) {
 /*----------------------------------------------------------------------------*/
 
 /**
- * @brief Returns the assigned I2C address of the display.
+ * @brief Returns the assigned 7-bit I2C address of the display.
  *
  * @param display Pointer to the ssd1306_display structure.
- * @return The assigned I2C address of the display. If ssd1306_init() hasn't
- * been called for the specified structure, the return value will be undefined.
+ * @return The assigned 7-bit I2C address of the display. If ssd1306_init()
+ * hasn't been called for the specified structure, the return value will be
+ * undefined.
  */
 uint8_t ssd1306_get_display_address(struct ssd1306_display *display) {
-    return *(display->data_buffer - 2);
+    return *(display->data_buffer - 2) >> 1;
 }
 
 /**
