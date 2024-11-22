@@ -1,18 +1,11 @@
 # Ignore everything
 *
 
-# Whitelisted files
+# Whitelisted folders/files
 !/.gitignore
 !/LICENSE.txt
 !/README.md
 !.clang-format
 
 !/lib/
-!/lib/ssd1306.c
-!/lib/ssd1306.h
-!/demo/
-!/demo/ssd1306_demo.h
-!/demo/ssd1306_demo.c
-!/test/
-!/test/ssd1306_test.h
-!/test/ssd1306_test.c
+!/lib/**
