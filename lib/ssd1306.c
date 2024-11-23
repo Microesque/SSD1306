@@ -215,15 +215,15 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
  * appropriate size according to the display type.
  * @param i2c_write Pointer to the function that writes a stream of data onto
  * the I2C bus.
- * 
+ *
  * The first byte of the data will always be the I2C write address
  * (i2c_address << 1) of the display. Note that, this isn't the original 7-bit
  * address, but the I2C write command for that address.
- * 
+ *
  * This is to enable support for various I2C libraries, some of which don't have
  * a sequential write, or address-data separate write functions. If your I2C
  * library functions require the address separately:
- * 
+ *
  * 1-) Read the first byte and if required, shift it to the right by one to get
  * the 7-bit address.
  *
@@ -632,6 +632,27 @@ void ssd1306_draw_fill(struct ssd1306_display *display) {
         buffer_size = SSD1306_BUFFER_SIZE_32;
     for (uint16_t i = 0; i < buffer_size; i++) {
         display->data_buffer[i] = 0xFF;
+    }
+}
+
+/**
+ * @brief Inverts the entire buffer (all pixels flipped).
+ *
+ * @note
+ * - Ignores buffer mode (draw/clear).
+ *
+ * - Ignores draw border.
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ */
+void ssd1306_draw_invert(struct ssd1306_display *display) {
+    uint16_t buffer_size;
+    if (display->display_type)
+        buffer_size = SSD1306_BUFFER_SIZE_64;
+    else
+        buffer_size = SSD1306_BUFFER_SIZE_32;
+    for (uint16_t i = 0; i < buffer_size; i++) {
+        display->data_buffer[i] = ~display->data_buffer[i];
     }
 }
 
