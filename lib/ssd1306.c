@@ -201,7 +201,7 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
  * re-initialize the display, use ssd1306_reinit() instead.
  *
  * - The display will reset to default configurations. These can be modified
- * individually through the header file.
+ * individually from the header file.
  *
  * - Any ongoing scrolls will be disabled (limitation of the driver chip).
  *
@@ -222,10 +222,10 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
  * 
  * This is to enable support for various I2C libraries, some of which don't have
  * a sequential write, or address-data separate write functions. If your I2C
- * library sends the address separately:
+ * library functions require the address separately:
  * 
- * 1-) Read the first byte and shift it to the right by one to get the 7-bit
- * address.
+ * 1-) Read the first byte and if required, shift it to the right by one to get
+ * the 7-bit address.
  *
  * 2-) Advance the data pointer by one, and decrement the length by one, and
  * send the data with your library function.
@@ -236,12 +236,12 @@ void ssd1306_init(struct ssd1306_display *display, uint8_t i2c_address,
     /*
      * The actual data (draw) buffer starts with a 2 byte offset. The first two
      * bytes are reserved for "I2C address" and "data mode". This way the whole
-     * array (data_buffer_ptr - 2) can be sent to the write function.
+     * I2C transmission (data_buffer_ptr - 2) can be sent to the write function.
      *
      * The same also applies for the command buffer. The first two bytes are
-     * reserved for "I2C address" and "cmd mode". This way the whole array
-     * (cmd_buffer_ptr - 2) can be sent to the write function. Beware of the max
-     * command length (ssd1306_display.cmd_memory[]).
+     * reserved for "I2C address" and "cmd mode". This way the whole I2C
+     * transmission (cmd_buffer_ptr - 2) can be sent to the write function.
+     * Beware of the max command length (ssd1306_display.cmd_memory[]).
      *
      * NEVER modify the addresses of data_buffer and cmd_buffer!
      */
