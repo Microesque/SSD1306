@@ -46,6 +46,8 @@ void ssd1306_test_scroll_enable_disable(struct ssd1306_display *display,
 
 void ssd1306_test_draw_clear_fill(struct ssd1306_display *display,
                                   uint16_t delay);
+void ssd1306_test_draw_invert(struct ssd1306_display *display, uint16_t delay);
+void ssd1306_test_draw_mirrors(struct ssd1306_display *display, uint16_t delay);
 void ssd1306_test_draw_shifts(struct ssd1306_display *display, uint16_t delay);
 void ssd1306_test_draw_lines(struct ssd1306_display *display, uint16_t delay);
 void ssd1306_test_draw_triangles(struct ssd1306_display *display,

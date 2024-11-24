@@ -287,6 +287,53 @@ void ssd1306_test_draw_clear_fill(struct ssd1306_display *display,
 /**
  * @brief Tests for:
  *
+ * - ssd1306_draw_invert()
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ * @param delay Arbitrary delay value that slows down the animation. Recommended
+ * starting value is 6000.
+ */
+void ssd1306_test_draw_invert(struct ssd1306_display *display, uint16_t delay) {
+    h_draw_logo(display);
+
+    while (1) {
+        ssd1306_draw_invert(display);
+        ssd1306_display_update(display);
+        h_delay(delay);
+    }
+}
+
+/**
+ * @brief Tests for:
+ *
+ * - ssd1306_draw_mirror_h()
+ *
+ * - ssd1306_draw_mirror_v()
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ * @param delay Arbitrary delay value that slows down the animation. Recommended
+ * starting value is 6000.
+ */
+void ssd1306_test_draw_mirrors(struct ssd1306_display *display,
+                               uint16_t delay) {
+    h_draw_logo(display);
+
+    while (1) {
+        for (uint8_t i = 0; i < 4; i++) {
+            if (i < 2) {
+                ssd1306_draw_mirror_h(display);
+            } else {
+                ssd1306_draw_mirror_v(display);
+            }
+            ssd1306_display_update(display);
+            h_delay(delay);
+        }
+    }
+}
+
+/**
+ * @brief Tests for:
+ *
  * - ssd1306_draw_shift_right()
  *
  * - ssd1306_draw_shift_left()
