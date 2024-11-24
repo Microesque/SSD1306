@@ -269,6 +269,7 @@ void ssd1306_draw_clear(struct ssd1306_display *display);
 void ssd1306_draw_fill(struct ssd1306_display *display);
 void ssd1306_draw_invert(struct ssd1306_display *display);
 void ssd1306_draw_mirror_h(struct ssd1306_display *display);
+void ssd1306_draw_mirror_v(struct ssd1306_display *display);
 void ssd1306_draw_shift_right(struct ssd1306_display *display, bool is_rotated);
 void ssd1306_draw_shift_left(struct ssd1306_display *display, bool is_rotated);
 void ssd1306_draw_shift_up(struct ssd1306_display *display, bool is_rotated);

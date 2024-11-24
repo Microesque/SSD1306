@@ -189,6 +189,23 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
     display->cursor_x += (x_advance * scale);
 }
 
+/**
+ * @brief Returns the reversed version of the byte.
+ *
+ * @param byte Byte to be reversed.
+ * @return Reversed byte.
+ */
+static uint8_t h_reverse_byte(uint8_t byte) {
+    uint8_t result = 0;
+    for (uint8_t i = 0; i < 8; i++) {
+        result <<= 1;
+        if (byte & 1)
+            result++;
+        byte >>= 1;
+    }
+    return result;
+}
+
 /*----------------------------------------------------------------------------*/
 /*------------------------------ Init Functions ------------------------------*/
 /*----------------------------------------------------------------------------*/
@@ -687,6 +704,45 @@ void ssd1306_draw_mirror_h(struct ssd1306_display *display) {
             *byte_last_ptr = temp;
             byte_first_ptr++;
             byte_last_ptr--;
+        }
+    }
+}
+
+/**
+ * @brief Vertically mirrors the entire buffer.
+ *
+ * @note
+ * - Ignores buffer mode (draw/clear).
+ *
+ * - Ignores draw border.
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ */
+void ssd1306_draw_mirror_v(struct ssd1306_display *display) {
+    uint8_t page_last;
+    uint8_t swap_counter;
+    if (display->display_type) {
+        page_last = 7;
+        swap_counter = 4;
+    } else {
+        page_last = 3;
+        swap_counter = 2;
+    }
+
+    uint8_t temp;
+    uint8_t *byte_first_ptr;
+    uint8_t *byte_last_ptr;
+    for (uint8_t i = 0; i <= SSD1306_X_MAX; i++) {
+        byte_first_ptr = &display->data_buffer[i];
+        byte_last_ptr = byte_first_ptr + SSD1306_PAGE_OFFSETS[page_last];
+
+        for (uint8_t i = 0; i < swap_counter; i++) {
+            temp = h_reverse_byte(*byte_first_ptr);
+            *byte_first_ptr = h_reverse_byte(*byte_last_ptr);
+            *byte_last_ptr = temp;
+
+            byte_first_ptr += SSD1306_PAGE1_OFFSET;
+            byte_last_ptr -= SSD1306_PAGE1_OFFSET;
         }
     }
 }
