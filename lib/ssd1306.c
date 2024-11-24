@@ -657,6 +657,41 @@ void ssd1306_draw_invert(struct ssd1306_display *display) {
 }
 
 /**
+ * @brief Horizontally mirrors the entire buffer.
+ *
+ * @note
+ * - Ignores buffer mode (draw/clear).
+ *
+ * - Ignores draw border.
+ *
+ * @param display Pointer to the ssd1306_display structure.
+ */
+void ssd1306_draw_mirror_h(struct ssd1306_display *display) {
+    uint8_t page_last;
+    if (display->display_type)
+        page_last = 7;
+    else
+        page_last = 3;
+
+    uint8_t middle = (SSD1306_X_MAX + 1) >> 1;
+    uint8_t temp;
+    uint8_t *byte_first_ptr;
+    uint8_t *byte_last_ptr;
+    for (uint8_t page = 0; page <= page_last; page++) {
+        byte_first_ptr = &display->data_buffer[SSD1306_PAGE_OFFSETS[page]];
+        byte_last_ptr = byte_first_ptr + SSD1306_X_MAX;
+
+        for (uint8_t i = 0; i < middle; i++) {
+            temp = *byte_first_ptr;
+            *byte_first_ptr = *byte_last_ptr;
+            *byte_last_ptr = temp;
+            byte_first_ptr++;
+            byte_last_ptr--;
+        }
+    }
+}
+
+/**
  * @brief Shifts the buffer contents to the right by one pixel.
  *
  * @note
