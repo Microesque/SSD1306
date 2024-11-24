@@ -202,9 +202,7 @@ static void h_draw_char(struct ssd1306_display *display, const uint8_t *bitmap,
 static uint8_t h_reverse_byte(uint8_t byte) {
     uint8_t result = 0;
     for (uint8_t i = 0; i < 8; i++) {
-        result <<= 1;
-        if (byte & 1)
-            result++;
+        result = (uint8_t)(result << 1) | (byte & 1);
         byte >>= 1;
     }
     return result;
