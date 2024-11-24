@@ -113,20 +113,22 @@ static void h_send_data_buffer(struct ssd1306_display *display) {
 }
 
 /**
- * @brief Checks it the specified coordinates are within the range for the
- * respective display type.
+ * @brief Checks it the specified coordinates are within drawing bounds for the
+ * specified display.
  *
  * @note After this check, these are guaranteed:
  *
  * - (x > 0) and (y > 0)
  *
+ * - (x < SSD1306_X_MAX)
+ *
  * - (y < SSD1306_Y_MAX_32) for 128x32 displays
  *
  * - (y < SSD1306_Y_MAX_64) for 128x64 displays
  *
+ * @param display Pointer to the ssd1306_display structure.
  * @param x x-coordinate to check.
  * @param y y-coordinate to check.
- * @param display_type Type of the display (128x32 or 128x64).
  * @return 'true' if within range; 'false' if out of bounds.
  */
 static bool h_are_coords_in_bounds(struct ssd1306_display *display, int16_t x,
