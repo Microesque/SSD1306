@@ -22,6 +22,11 @@
  * SOFTWARE.
  */
 
+/**
+ * Library GitHub Page:   https://github.com/Microesque/SSD1306
+ * Library Documentation: https://github.com/Microesque/SSD1306/wiki
+ */
+
 #ifndef SSD1306_H
 #define SSD1306_H
 
