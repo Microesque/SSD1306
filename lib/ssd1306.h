@@ -203,7 +203,7 @@ struct ssd1306_glyph {
  * Structure representing fonts.
  */
 struct ssd1306_font {
-    uint8_t *bitmap;
+    const uint8_t *bitmap;
     struct ssd1306_glyph *glyph;
     uint16_t first;
     uint16_t last;
@@ -214,7 +214,7 @@ struct ssd1306_font {
  * Structure representing custom characters.
  */
 struct ssd1306_custom_char {
-    uint8_t *bitmap;
+    const uint8_t *bitmap;
     uint8_t width;
     uint8_t height;
     int8_t x_offset;
