@@ -236,6 +236,7 @@ struct ssd1306_display {
     enum ssd1306_display_type display_type;
     enum ssd1306_buffer_mode buffer_mode;
     uint8_t cmd_memory[10];
+    uint8_t i2c_address;
     uint8_t font_scale;
     uint8_t border_x_min;
     uint8_t border_y_min;

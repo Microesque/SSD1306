@@ -97,6 +97,7 @@ static const uint16_t SSD1306_PAGE_OFFSETS[] = {
  * @param length The number of bytes to send. Maximum 8 commands, not checked!
  */
 static void h_send_cmd_buffer(struct ssd1306_display *display, uint8_t length) {
+    display->cmd_memory[0] = display->i2c_address;
     display->i2c_write(display->cmd_memory, length + 2);
 }
 
@@ -111,6 +112,8 @@ static void h_send_data_buffer(struct ssd1306_display *display) {
         buffer_size = SSD1306_ARRAY_SIZE_64;
     else
         buffer_size = SSD1306_ARRAY_SIZE_32;
+
+    *(display->data_buffer - 2) = display->i2c_address;
     display->i2c_write(display->data_buffer - 2, buffer_size);
 }
 
@@ -264,14 +267,13 @@ void ssd1306_init(struct ssd1306_display *display, uint8_t i2c_address,
      *
      * NEVER modify the addresses of data_buffer and cmd_buffer!
      */
-    i2c_address <<= 1; /* Write only */
-    array[0] = i2c_address;
     array[1] = SSD1306_CONTROL_DATA;
     display->data_buffer = &array[2];
-    display->cmd_memory[0] = i2c_address;
+
     display->cmd_memory[1] = SSD1306_CONTROL_CMD;
     display->cmd_buffer = &display->cmd_memory[2];
 
+    display->i2c_address = (uint8_t)(i2c_address << 1); /* Write only */
     display->i2c_write = i2c_write;
     display->display_type = display_type;
 
