@@ -41,8 +41,8 @@
  * The maximum number of characters that ssd1306_draw_printf() can draw
  * at a time, including the null terminator.
  *
- * "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of RAM will be reserved
- * (once, not per display), but only if ssd1306_draw_printf() is used.
+ * "SSD1306_PRINTF_CHAR_LIMIT * sizeof(char)" bytes of memory will be reserved
+ * (statically for the function, not per display).
  */
 #define SSD1306_PRINTF_CHAR_LIMIT 255
 
@@ -50,9 +50,12 @@
  * The following define the default values or actions taken after a display
  * init/reinit. Square brackets indicate the valid range of values.
  *
- * If you're unsure about any of them, you can leave them as is. All of
- * the options below have an equivalent function to setup/change, all of
- * which also come with a comprehensive description.
+ * If you're unsure about any of the configurations, you can leave them as is.
+ * The default configurations represent the normal behavior you'd expect from
+ * the display.
+ *
+ * All of the configurations below have an equivalent function to setup/change,
+ * all of which also come with a comprehensive description.
  */
 
 /*
@@ -116,8 +119,8 @@
 /*
  * The default font [NULL, &<ssd1306_font>].
  *
- * To set up a default font, include the header file of your font above the
- * macro, then set the value to the address of the ssd1306_font variable.
+ * To set up a default font, include the header file of the font above the
+ * macro, then set the macro to the address of the ssd1306_font variable.
  *
  * Ex:
  *     #include "../fonts/RandomFont.h"
@@ -146,21 +149,20 @@
  * instead.
  */
 enum ssd1306_buffer_mode {
-    SSD1306_BUFFER_MODE_CLEAR,
-    SSD1306_BUFFER_MODE_DRAW
+    SSD1306_BUFFER_MODE_CLEAR, /* Buffer mode 'clear' */
+    SSD1306_BUFFER_MODE_DRAW   /* Buffer mode 'draw' */
 };
 
 /*
- * Types for the respective displays (128x32 or 128x64).
+ * Type definitions for the respective display types.
  */
 enum ssd1306_display_type {
-    SSD1306_DISPLAY_TYPE_32,
-    SSD1306_DISPLAY_TYPE_64
+    SSD1306_DISPLAY_TYPE_32, /* For 128x32 displays */
+    SSD1306_DISPLAY_TYPE_64  /* For 128x64 displays */
 };
 
 /*
- * Buffer sizes required by the respective display types (128x32 or
- * 128x64).
+ * Buffer sizes required for the respective display types.
  */
 #define SSD1306_ARRAY_SIZE_32 (2 + 512)  /* For 128x32 displays */
 #define SSD1306_ARRAY_SIZE_64 (2 + 1024) /* For 128x64 displays */
@@ -168,27 +170,27 @@ enum ssd1306_display_type {
 /*
  * Maximum coordinates for the respective display types (128x32 and 128x64).
  */
-#define SSD1306_X_MAX 127 /**/
-#define SSD1306_X_MIN 0
-#define SSD1306_Y_MAX_32 31
-#define SSD1306_Y_MAX_64 63
-#define SSD1306_Y_MIN 0
+#define SSD1306_X_MAX 127   /* Maximum x-coordinate */
+#define SSD1306_X_MIN 0     /* Minimum x-coordinate */
+#define SSD1306_Y_MAX_32 31 /* Maximum y-coordinate (128x32) */
+#define SSD1306_Y_MAX_64 63 /* Maximum y-coordinate (128x64) */
+#define SSD1306_Y_MIN 0     /* Maximum y-coordinate */
 
 /*
  * Masks that can be OR'd to enable specific quadrants when drawing with
- * ssd1306_draw_arc() and ssd1306_draw_arc_fill().
+ * ssd1306_draw_arc() and ssd1306_draw_arc_fill() functions.
  */
-#define SSD1306_ARC_QUAD1 0x1 /* Mask to enable quadrant 1 */
-#define SSD1306_ARC_QUAD2 0x2 /* Mask to enable quadrant 2 */
-#define SSD1306_ARC_QUAD3 0x4 /* Mask to enable quadrant 3 */
-#define SSD1306_ARC_QUAD4 0x8 /* Mask to enable quadrant 4 */
+#define SSD1306_ARC_QUAD1 0x1 /* Mask for quadrant 1 */
+#define SSD1306_ARC_QUAD2 0x2 /* Mask for quadrant 2 */
+#define SSD1306_ARC_QUAD3 0x4 /* Mask for quadrant 3 */
+#define SSD1306_ARC_QUAD4 0x8 /* Mask for quadrant 4 */
 
 /*----------------------------------------------------------------------------*/
 /*-------------------------------- Structures --------------------------------*/
 /*----------------------------------------------------------------------------*/
 
 /*
- * Structure representing glyphs for characters.
+ * Structure representing glyphs.
  */
 struct ssd1306_glyph {
     uint16_t bitmap_offset;
@@ -223,7 +225,7 @@ struct ssd1306_custom_char {
 };
 
 /*
- * Structure presenting your displays. Initialize with ssd1306_init().
+ * Structure presenting displays. Initialize with ssd1306_init().
  */
 struct ssd1306_display {
     void (*i2c_write)(uint8_t *data, uint16_t length);
