@@ -1729,8 +1729,9 @@ void ssd1306_draw_circle_fill(struct ssd1306_display *display, int16_t x0,
  * ssd1306_display_update() to push the buffer onto the display.
  *
  * @param display Pointer to the ssd1306_display structure.
- * @param x0 x-coordinate of the starting point.
- * @param y0 y-coordinate of the starting point.
+ * @param x0 x-coordinate of the top left pixel of the image.
+ * @param y0 y-coordinate of the top left pixel of the image.
+ * @param bitmap Pointer to the bitmap array.
  * @param width Width of the image in pixels. The value MUST match the bitmap
  * width, or the drawing may get corrupted and random parts of the memory may
  * be accessed. For example, for an image with a resolution of 60x40, the
@@ -1739,7 +1740,6 @@ void ssd1306_draw_circle_fill(struct ssd1306_display *display, int16_t x0,
  * height, or the drawing may get corrupted and random parts of the memory may
  * be accessed. For example, for an image with a resolution of 60x40, the
  * height value should be '40'.
- * @param bitmap Pointer to the bitmap array.
  * @param has_bg 'true' to overwrite the contents in the background; 'false' to
  * draw transparent.
  */
