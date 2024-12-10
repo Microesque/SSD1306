@@ -7,8 +7,8 @@ Setup guide includes `STM32 (HAL Library)` and `PIC16/18 (MCC Library)` examples
 
 ### Features:
 - Library with only one `.c/.h` pair.
+- Library with only static memory allocations.
 - Requires minimal setup with a single callback function.
-- Uses static only memory allocation.
 - Supports unlimited number of displays.
 - Provides all hardware commands.
 - Includes graphical functions (circle/line/rectangle/etc.).
