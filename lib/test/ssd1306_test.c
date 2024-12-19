@@ -886,12 +886,6 @@ void ssd1306_test_buffer_mode(struct ssd1306_display *display, uint16_t delay) {
  * starting value is 6000.
  */
 void ssd1306_test_font(struct ssd1306_display *display, uint16_t delay) {
-    uint8_t SSD1306_Y_MAX;
-    if (display->display_type)
-        SSD1306_Y_MAX = SSD1306_Y_MAX_64;
-    else
-        SSD1306_Y_MAX = SSD1306_Y_MAX_32;
-
     const struct ssd1306_font *original_font = ssd1306_get_font(display);
     int16_t x0, x, y;
 
