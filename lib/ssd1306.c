@@ -1536,7 +1536,6 @@ void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0,
         ssd1306_draw_pixel(display, x0 - r, y0);
 
     int16_t f_middle, delta_e, delta_se, x, y;
-    int16_t diff_1, diff_2;
 
     /* Initialize the middle point and delta values, start from (0, r) */
     f_middle = 1 - r; /* Simplified from "5/4-r" */
@@ -1559,8 +1558,6 @@ void ssd1306_draw_arc(struct ssd1306_display *display, int16_t x0, int16_t y0,
         x++;
 
         /* Draw using 8-way symmetry */
-        diff_1 = y - x + 1;
-        diff_2 = -y + x - 1;
         if (quadrants & 0b0001) {
             ssd1306_draw_pixel(display, (x0 + x), (y0 - y));
             ssd1306_draw_pixel(display, (x0 + y), (y0 - x));
