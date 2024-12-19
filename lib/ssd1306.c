@@ -123,7 +123,7 @@ static void h_send_data_buffer(struct ssd1306_display *display) {
 }
 
 /**
- * @brief Checks it the specified coordinates are within drawing bounds for the
+ * @brief Checks it the specified coordinates are within drawing border for the
  * specified display.
  *
  * @note After this check, these are guaranteed:
@@ -139,9 +139,9 @@ static void h_send_data_buffer(struct ssd1306_display *display) {
  * @param display Pointer to the ssd1306_display structure.
  * @param x x-coordinate to check.
  * @param y y-coordinate to check.
- * @return 'true' if within range; 'false' if out of bounds.
+ * @return 'true' if within range; 'false' if out of border.
  */
-static bool h_are_coords_in_bounds(struct ssd1306_display *display, int16_t x,
+static bool h_are_coords_in_border(struct ssd1306_display *display, int16_t x,
                                    int16_t y) {
     if ((x < display->border_x_min) || (x > display->border_x_max) ||
         (y < display->border_y_min) || (y > display->border_y_max))
@@ -975,7 +975,7 @@ void ssd1306_draw_shift_down(struct ssd1306_display *display, bool is_rotated) {
  * @param y y-coordinate of the pixel. Any value out of bounds will be clipped.
  */
 void ssd1306_draw_pixel(struct ssd1306_display *display, int16_t x, int16_t y) {
-    if (!h_are_coords_in_bounds(display, x, y))
+    if (!h_are_coords_in_border(display, x, y))
         return;
 
     /* x > 0 and y > 0 after above check */
@@ -2298,7 +2298,7 @@ uint8_t *sd1306_get_buffer(struct ssd1306_display *display) {
  */
 uint8_t ssd1306_get_buffer_pixel(struct ssd1306_display *display, int16_t x,
                                  int16_t y) {
-    if (!h_are_coords_in_bounds(display, x, y))
+    if (!h_are_coords_in_border(display, x, y))
         return 0;
 
     /* x > 0 and y > 0 after above check */
