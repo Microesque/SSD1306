@@ -2046,12 +2046,12 @@ void ssd1306_draw_printf(struct ssd1306_display *display, const char *format,
  */
 void ssd1306_set_draw_border(struct ssd1306_display *display, uint8_t x_min,
                              uint8_t y_min, uint8_t x_max, uint8_t y_max) {
-    /* Below checks must done to prevent writing to random memory locations! */
-    uint8_t ssd1306_y_max;
+    /* Below checks are required to prevent writing to random memory! */
+    uint8_t SSD1306_Y_MAX;
     if (display->display_type)
-        ssd1306_y_max = SSD1306_Y_MAX_64;
+        SSD1306_Y_MAX = SSD1306_Y_MAX_64;
     else
-        ssd1306_y_max = SSD1306_Y_MAX_32;
+        SSD1306_Y_MAX = SSD1306_Y_MAX_32;
 
     if (x_min > SSD1306_X_MAX)
         x_min = SSD1306_X_MAX;
@@ -2059,11 +2059,11 @@ void ssd1306_set_draw_border(struct ssd1306_display *display, uint8_t x_min,
     if (x_max > SSD1306_X_MAX)
         x_max = SSD1306_X_MAX;
 
-    if (y_min > ssd1306_y_max)
-        y_min = ssd1306_y_max;
+    if (y_min > SSD1306_Y_MAX)
+        y_min = SSD1306_Y_MAX;
 
-    if (y_max > ssd1306_y_max)
-        y_max = ssd1306_y_max;
+    if (y_max > SSD1306_Y_MAX)
+        y_max = SSD1306_Y_MAX;
 
     display->border_x_min = x_min;
     display->border_y_min = y_min;
@@ -2077,16 +2077,16 @@ void ssd1306_set_draw_border(struct ssd1306_display *display, uint8_t x_min,
  * @param display Pointer to the ssd1306_display structure.
  */
 void ssd1306_set_draw_border_reset(struct ssd1306_display *display) {
-    uint8_t ssd1306_y_max;
+    uint8_t SSD1306_Y_MAX;
     if (display->display_type)
-        ssd1306_y_max = SSD1306_Y_MAX_64;
+        SSD1306_Y_MAX = SSD1306_Y_MAX_64;
     else
-        ssd1306_y_max = SSD1306_Y_MAX_32;
+        SSD1306_Y_MAX = SSD1306_Y_MAX_32;
 
     display->border_x_min = 0;
     display->border_y_min = 0;
     display->border_x_max = SSD1306_X_MAX;
-    display->border_y_max = ssd1306_y_max;
+    display->border_y_max = SSD1306_Y_MAX;
 }
 
 /**
