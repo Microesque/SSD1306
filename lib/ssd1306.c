@@ -1797,7 +1797,7 @@ void ssd1306_draw_bitmap(struct ssd1306_display *display, int16_t x0,
  */
 void ssd1306_draw_char(struct ssd1306_display *display, char c) {
     if (display->font == NULL)
-        return;
+        goto invalid_char;
 
     switch (c) {
     case '\n':
@@ -1807,8 +1807,13 @@ void ssd1306_draw_char(struct ssd1306_display *display, char c) {
         return;
     }
 
-    if (c < display->font->first || c > display->font->last)
-        c = '?';
+    if (c < display->font->first || c > display->font->last) {
+    invalid_char:
+        ssd1306_draw_rect(display, display->cursor_x, display->cursor_y, 8,
+                          -12);
+        display->cursor_x += 10;
+        return;
+    }
 
     struct ssd1306_glyph *glyph;
     glyph = &display->font->glyph[c - display->font->first];
