@@ -234,7 +234,7 @@ static uint8_t h_reverse_byte(uint8_t byte) {
  * @param display Pointer to the ssd1306_display structure.
  * @param i2c_address 7-bit I2C address of the display.
  * @param display_type Display type (128x32 or 128x64). Use the
- * ssd1306_display_type enums provided in the header file.
+ * ssd1306_display_type enum provided in the header file.
  * @param array Pointer to the array that will serve as the buffer for the
  * display. Use the macros provided in the header file to declare an array of
  * the appropriate size based on the display type.
