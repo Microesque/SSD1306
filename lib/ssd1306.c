@@ -2186,7 +2186,7 @@ void ssd1306_set_cursor(struct ssd1306_display *display, int16_t x, int16_t y) {
  * @return The assigned 7-bit I2C address of the display.
  */
 uint8_t ssd1306_get_display_address(struct ssd1306_display *display) {
-    return *(display->data_buffer - 2) >> 1;
+    return (uint8_t)(display->i2c_address >> 1);
 }
 
 /**
