@@ -28,3 +28,7 @@ Setup guide includes `STM32 (HAL Library)` and `PIC16/18 (MCC Library)` examples
 [Full Setup Guide & Documentation](https://github.com/Microesque/SSD1306/wiki)
 
 ---
+
+<div style="text-align: left;">
+<img src="https://raw.githubusercontent.com/wiki/Microesque/SSD1306/images/Home/Intro.gif" alt="img" width="750">
+</div>
